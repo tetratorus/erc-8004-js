@@ -1,0 +1,15 @@
+[
+  "function getIdentityRegistry() external view returns (address)",
+  "function giveFeedback(uint256 agentId, uint8 score, bytes32 tag1, bytes32 tag2, string memory fileuri, bytes32 filehash, bytes memory feedbackAuth) external",
+  "function revokeFeedback(uint256 agentId, uint64 feedbackIndex) external",
+  "function appendResponse(uint256 agentId, address clientAddress, uint64 feedbackIndex, string memory responseUri, bytes32 responseHash) external",
+  "function getSummary(uint256 agentId, address[] memory clientAddresses, bytes32 tag1, bytes32 tag2) external view returns (uint64 count, uint8 averageScore)",
+  "function readFeedback(uint256 agentId, address clientAddress, uint64 index) external view returns (uint8 score, bytes32 tag1, bytes32 tag2, bool isRevoked)",
+  "function readAllFeedback(uint256 agentId, address[] memory clientAddresses, bytes32 tag1, bytes32 tag2, bool includeRevoked) external view returns (address[] memory clientAddresses, uint8[] memory scores, bytes32[] memory tag1s, bytes32[] memory tag2s, bool[] memory revokedStatuses)",
+  "function getResponseCount(uint256 agentId, address clientAddress, uint64 feedbackIndex, address[] memory responders) external view returns (uint64)",
+  "function getClients(uint256 agentId) external view returns (address[] memory)",
+  "function getLastIndex(uint256 agentId, address clientAddress) external view returns (uint64)",
+  "event NewFeedback(uint256 indexed agentId, address indexed clientAddress, uint8 score, bytes32 indexed tag1, bytes32 tag2, string fileuri, bytes32 filehash)",
+  "event FeedbackRevoked(uint256 indexed agentId, address indexed clientAddress, uint64 indexed feedbackIndex)",
+  "event ResponseAppended(uint256 indexed agentId, address indexed clientAddress, uint64 feedbackIndex, address indexed responder, string responseUri)"
+]

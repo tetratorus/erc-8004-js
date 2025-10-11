@@ -1,0 +1,12 @@
+[
+  "function register(string memory tokenURI, tuple(string key, bytes value)[] memory metadata) external returns (uint256)",
+  "function register(string memory tokenURI) external returns (uint256)",
+  "function register() external returns (uint256)",
+  "function getMetadata(uint256 agentId, string memory key) external view returns (bytes memory)",
+  "function setMetadata(uint256 agentId, string memory key, bytes memory value) external",
+  "function tokenURI(uint256 tokenId) external view returns (string memory)",
+  "function setTokenURI(uint256 tokenId, string memory uri) external",
+  "function ownerOf(uint256 tokenId) external view returns (address)",
+  "event Registered(uint256 indexed agentId, string tokenURI, address indexed owner)",
+  "event MetadataSet(uint256 indexed agentId, string indexed indexedKey, string key, bytes value)"
+]
