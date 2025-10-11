@@ -47,7 +47,7 @@ export class IdentityClient {
     const result = await this.adapter.send(
       this.contractAddress,
       IdentityRegistryABI,
-      'register',
+      'register(string)',
       [tokenURI]
     );
 
