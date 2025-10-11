@@ -14,3 +14,4 @@ export { ReputationClient } from './ReputationClient';
 export { ValidationClient } from './ValidationClient';
 export * from './adapters';
 export * from './types';
+export { cidToBytes32, ipfsUriToBytes32 } from './utils/ipfs';

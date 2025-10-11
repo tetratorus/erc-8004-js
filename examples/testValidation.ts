@@ -12,13 +12,49 @@
  * - Reading validation status and summaries
  */
 
-import { ERC8004Client, EthersAdapter } from '../src';
+import { ERC8004Client, EthersAdapter, ipfsUriToBytes32 } from '../src';
 import { ethers } from 'ethers';
 
 // Contract addresses from your deployment
 const IDENTITY_REGISTRY = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 const REPUTATION_REGISTRY = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
 const VALIDATION_REGISTRY = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0';
+
+/**
+ * Generate a random CIDv0 (Qm...) for testing purposes
+ * CIDv0 format: base58(0x12 + 0x20 + 32 random bytes)
+ */
+function generateRandomCIDv0(): string {
+  // Base58 alphabet
+  const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+  // Create random 32 bytes
+  const randomBytes = ethers.randomBytes(32);
+
+  // Build CIDv0 structure: [0x12 (sha256), 0x20 (32 bytes), ...random bytes...]
+  const cidBytes = new Uint8Array(34);
+  cidBytes[0] = 0x12; // sha256
+  cidBytes[1] = 0x20; // 32 bytes length
+  cidBytes.set(randomBytes, 2);
+
+  // Encode to base58
+  const bytes = Array.from(cidBytes);
+  let num = BigInt('0x' + bytes.map(b => b.toString(16).padStart(2, '0')).join(''));
+
+  let encoded = '';
+  while (num > 0n) {
+    const remainder = Number(num % 58n);
+    encoded = BASE58_ALPHABET[remainder] + encoded;
+    num = num / 58n;
+  }
+
+  // Handle leading zeros
+  for (let i = 0; i < cidBytes.length && cidBytes[i] === 0; i++) {
+    encoded = '1' + encoded;
+  }
+
+  return encoded;
+}
 
 async function main() {
   console.log('🚀 ERC-8004 Validation Test\n');
@@ -67,25 +103,28 @@ async function main() {
   const registerResult = await agentSDK.identity.registerWithURI(
     'https://example.com/agent.json'
   );
-  const agentId = registerResult.agentId;
+  const agentId = BigInt(registerResult.agentId);
   console.log(`✅ Agent registered with ID: ${agentId}`);
   console.log(`   TX Hash: ${registerResult.txHash}\n`);
 
   // Step 2: Agent requests validation
   console.log('📋 Step 2: Agent requesting validation...');
+  // Generate a random IPFS CID for this validation request
+  const cid1 = generateRandomCIDv0();
+  const requestUri = `ipfs://${cid1}`;
+  // Convert IPFS CID to bytes32 for use as requestHash
+  const requestHash = ipfsUriToBytes32(requestUri);
   const requestResult = await agentSDK.validation.validationRequest({
     validatorAddress,
     agentId,
-    requestUri: 'ipfs://QmValidationRequest123',
-    // requestHash is OPTIONAL for IPFS URIs
+    requestUri,
+    requestHash,
   });
   console.log(`✅ Validation requested`);
   console.log(`   Validator: ${validatorAddress}`);
-  console.log(`   Request URI: ipfs://QmValidationRequest123`);
+  console.log(`   Request URI: ${requestUri}`);
   console.log(`   Request Hash: ${requestResult.requestHash}`);
   console.log(`   TX Hash: ${requestResult.txHash}\n`);
-
-  const requestHash = requestResult.requestHash;
 
   // Step 3: Validator provides response (passed)
   console.log('📋 Step 3: Validator providing response (passed)...');
@@ -139,10 +178,15 @@ async function main() {
 
   // Step 8: Submit second validation request and provide different response
   console.log('📋 Step 8: Submitting second validation request...');
+  // Generate another random IPFS CID
+  const cid2 = generateRandomCIDv0();
+  const requestUri2 = `ipfs://${cid2}`;
+  const requestHash2 = ipfsUriToBytes32(requestUri2);
   const request2 = await agentSDK.validation.validationRequest({
     validatorAddress,
     agentId,
-    requestUri: 'ipfs://QmValidationRequest456',
+    requestUri: requestUri2,
+    requestHash: requestHash2,
   });
   console.log(`✅ Second validation requested`);
   console.log(`   Request Hash: ${request2.requestHash}\n`);

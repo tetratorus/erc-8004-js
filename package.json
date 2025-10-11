@@ -11,14 +11,21 @@
     "test:validation": "ts-node examples/testValidation.ts",
     "test": "npm run test:register"
   },
-  "keywords": ["erc8004", "agents", "reputation", "validation", "blockchain"],
+  "keywords": [
+    "erc8004",
+    "agents",
+    "reputation",
+    "validation",
+    "blockchain"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0"
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   },
   "dependencies": {
-    "ethers": "^6.0.0"
+    "ethers": "^6.0.0",
+    "multiformats": "^13.4.1"
   }
 }
