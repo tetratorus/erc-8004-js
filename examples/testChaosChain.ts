@@ -11,7 +11,8 @@
  * - Reading agent information
  * - Updating tokenURI
  */
-
+import dotenv from 'dotenv';
+dotenv.config();
 import { ERC8004Client, EthersAdapter } from '../src';
 import { ethers } from 'ethers';
 
@@ -61,11 +62,11 @@ async function main() {
 
   // Connect to Sepolia
   console.log('Connecting to Sepolia');
-  const provider = new ethers.JsonRpcProvider('https://eth-sepolia.g.alchemy.com/v2/13Abg3EcD65uhCriL7B-H');
-  // SEPOLIA TESTNET PRIVATE KEY 1 0xdcfbea7ee0ecf4f5b6b683ec380df3fccd574c36a7e9ec2719aa9319b10d84e2
-  // SEPOLIA TESTNET PRIVATE KEY 2 0x6a0a4902c340427ff5f5e74131f5643a7e3435bf89beb813f244b757daa56825
-  const agentOwner = new ethers.Wallet('0xdcfbea7ee0ecf4f5b6b683ec380df3fccd574c36a7e9ec2719aa9319b10d84e2', provider);
-  const feedbackGiver = new ethers.Wallet('0x6a0a4902c340427ff5f5e74131f5643a7e3435bf89beb813f244b757daa56825', provider);
+  const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL || '');
+  const SEPOLIA_TESTNET_PRIVATE_KEY_1 = process.env.SEPOLIA_TESTNET_PRIVATE_KEY_1 || '';
+  const SEPOLIA_TESTNET_PRIVATE_KEY_2 = process.env.SEPOLIA_TESTNET_PRIVATE_KEY_2 || '';
+  const agentOwner = new ethers.Wallet(SEPOLIA_TESTNET_PRIVATE_KEY_1, provider);
+  const feedbackGiver = new ethers.Wallet(SEPOLIA_TESTNET_PRIVATE_KEY_2, provider);
 
   // Create adapter for agent owner
   const agentAdapter = new EthersAdapter(provider, agentOwner);
