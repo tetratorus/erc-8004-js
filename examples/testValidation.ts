@@ -128,10 +128,11 @@ async function main() {
 
   // Step 3: Validator provides response (passed)
   console.log('📋 Step 3: Validator providing response (passed)...');
+  const responseUri1 = `ipfs://${generateRandomCIDv0()}`;
   const responseResult = await validatorSDK.validation.validationResponse({
     requestHash,
     response: 100, // 100 = passed, 0 = failed
-    responseUri: 'ipfs://QmValidationResponse123',
+    responseUri: responseUri1,
     tag: 'zkML-proof',
   });
   console.log(`✅ Validation response provided`);
@@ -209,11 +210,12 @@ async function main() {
 
   // Step 11: Validator updates first validation (progressive validation)
   console.log('📋 Step 11: Validator updating first validation (hard finality)...');
+  const responseUri2 = `ipfs://${generateRandomCIDv0()}`;
   await validatorSDK.validation.validationResponse({
     requestHash,
     response: 100,
     tag: 'hard-finality',
-    responseUri: 'ipfs://QmUpdatedResponse',
+    responseUri: responseUri2,
   });
   console.log(`✅ Validation updated with hard finality tag\n`);
 

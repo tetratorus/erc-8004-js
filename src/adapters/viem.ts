@@ -35,11 +35,17 @@ export class ViemAdapter implements BlockchainAdapter {
     functionName: string,
     args: any[]
   ): Promise<any> {
+    // Strip function signature if present (ethers format compatibility)
+    // Viem auto-matches based on args, ethers uses "functionName(types)"
+    const cleanFunctionName = functionName.includes('(')
+      ? functionName.substring(0, functionName.indexOf('('))
+      : functionName;
+
     // ABI is already in proper JSON format, use directly
     const result = await this.publicClient.readContract({
       address: contractAddress as Address,
       abi: abi as any,
-      functionName,
+      functionName: cleanFunctionName,
       args,
     });
     return result;
@@ -55,12 +61,18 @@ export class ViemAdapter implements BlockchainAdapter {
       throw new Error('Wallet client and account required for write operations');
     }
 
+    // Strip function signature if present (ethers format compatibility)
+    // Viem auto-matches based on args, ethers uses "functionName(types)"
+    const cleanFunctionName = functionName.includes('(')
+      ? functionName.substring(0, functionName.indexOf('('))
+      : functionName;
+
     // ABI is already in proper JSON format, use directly
     // Simulate the transaction first
     const { request } = await this.publicClient.simulateContract({
       address: contractAddress as Address,
       abi: abi as any,
-      functionName,
+      functionName: cleanFunctionName,
       args,
       account: this.account,
     });
