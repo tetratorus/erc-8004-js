@@ -15,7 +15,7 @@ This SDK provides a simple, type-safe interface to interact with ERC-8004 contra
 ## Installation
 
 ```bash
-npm install erc8004-sdk
+npm install erc-8004-js
 ```
 
 ## Quick Start
@@ -23,7 +23,7 @@ npm install erc8004-sdk
 ### Using Ethers.js
 
 ```typescript
-import { ERC8004Client, EthersAdapter } from 'erc8004-sdk';
+import { ERC8004Client, EthersAdapter } from 'erc-8004-js';
 import { ethers } from 'ethers';
 
 const provider = new ethers.JsonRpcProvider('YOUR_RPC_URL');
@@ -48,7 +48,7 @@ console.log('Agent ID:', result.agentId);
 ### Using Viem
 
 ```typescript
-import { ERC8004Client, ViemAdapter } from 'erc8004-sdk';
+import { ERC8004Client, ViemAdapter } from 'erc-8004-js';
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -139,7 +139,7 @@ console.log('Total Feedback:', summary.count);
 ### Validation
 
 ```typescript
-import { ipfsUriToBytes32 } from 'erc8004-sdk';
+import { ipfsUriToBytes32 } from 'erc-8004-js';
 
 // Request validation
 const requestUri = 'ipfs://QmValidationRequest';
@@ -171,7 +171,7 @@ The SDK includes comprehensive IPFS support for uploading, pinning, and fetching
 ### Quick Example
 
 ```typescript
-import { createIPFSClient } from 'erc8004-sdk';
+import { createIPFSClient } from 'erc-8004-js';
 
 // Create IPFS client (supports Pinata, NFT.Storage, Web3.Storage, local IPFS)
 const ipfs = createIPFSClient({
@@ -203,7 +203,7 @@ const data = await ipfs.fetchJSON(result.cid);
 Convert IPFS CIDs to bytes32 for on-chain storage:
 
 ```typescript
-import { cidToBytes32, ipfsUriToBytes32 } from 'erc8004-sdk';
+import { cidToBytes32, ipfsUriToBytes32 } from 'erc-8004-js';
 
 // Convert CID to bytes32 for use as request hash
 const cid = 'QmR7GSQM93Cx5eAg6a6yRzNde1FQv7uL6X1o4k7zrJa3LX';

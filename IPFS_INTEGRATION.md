@@ -66,7 +66,7 @@ createIPFSClient(config: IPFSClientConfig): IPFSClient
 ### Basic Upload
 
 ```typescript
-import { createIPFSClient } from 'erc8004-sdk';
+import { createIPFSClient } from 'erc-8004-js';
 
 const ipfs = createIPFSClient({
   provider: 'pinata',
@@ -142,7 +142,7 @@ cp .env.example .env
 4. **Use in your code:**
 
 ```typescript
-import { createIPFSClient } from 'erc8004-sdk';
+import { createIPFSClient } from 'erc-8004-js';
 
 const ipfs = createIPFSClient({
   provider: 'pinata',

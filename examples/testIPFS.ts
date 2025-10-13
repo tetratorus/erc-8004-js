@@ -84,7 +84,7 @@ async function main() {
     const result = await ipfs.uploadJSON(agentData, {
       name: 'my-agent-registration.json',
       metadata: {
-        project: 'erc8004-sdk',
+        project: 'erc-8004-js',
         type: 'agent-registration',
       },
     });
@@ -357,7 +357,7 @@ async function discoverAgent(agentId: bigint) {
   console.log(`   Name: ${agentData.name}`);
   console.log(`   Description: ${agentData.description}`);
   console.log(`   Type: ${agentData.type}`);
-  
+
   // 4. Check trust models
   console.log('\n🔒 Trust Models:');
   if (agentData.supportedTrust && agentData.supportedTrust.length > 0) {
@@ -481,9 +481,9 @@ if (require.main === module) {
     });
 }
 
-export { 
-  uploadFileBuffer, 
-  uploadWithManifest, 
+export {
+  uploadFileBuffer,
+  uploadWithManifest,
   bulkUpload,
   completeAgentLifecycle,
   discoverAgent

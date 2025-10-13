@@ -3,13 +3,13 @@
 ## Installation
 
 ```bash
-npm install erc8004-sdk
+npm install erc-8004-js
 ```
 
 ## Setup
 
 ```typescript
-import { createIPFSClient } from 'erc8004-sdk';
+import { createIPFSClient } from 'erc-8004-js';
 
 const ipfs = createIPFSClient({
   provider: 'pinata',  // or 'nftstorage', 'web3storage', 'ipfs'

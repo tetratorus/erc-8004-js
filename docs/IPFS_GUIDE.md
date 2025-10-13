@@ -16,7 +16,7 @@ This guide covers how to use the IPFS client for uploading, pinning, and fetchin
 The IPFS client is included in the SDK. No additional packages needed:
 
 ```bash
-npm install erc8004-sdk
+npm install erc-8004-js
 ```
 
 For local IPFS node support, install IPFS Desktop or Kubo:
@@ -32,7 +32,7 @@ brew install ipfs
 ### Using Pinata (Recommended)
 
 ```typescript
-import { createIPFSClient } from 'erc8004-sdk';
+import { createIPFSClient } from 'erc-8004-js';
 
 const ipfs = createIPFSClient({
   provider: 'pinata',
@@ -241,7 +241,7 @@ ipfs.getGatewayUrl(cid: string): string
 ### Upload Agent Registration
 
 ```typescript
-import { createIPFSClient, ERC8004Client } from 'erc8004-sdk';
+import { createIPFSClient, ERC8004Client } from 'erc-8004-js';
 
 // 1. Create IPFS client
 const ipfs = createIPFSClient({
@@ -317,7 +317,7 @@ await client.reputation.submitFeedback({
 ### Validation Request with IPFS
 
 ```typescript
-import { ipfsUriToBytes32 } from 'erc8004-sdk';
+import { ipfsUriToBytes32 } from 'erc-8004-js';
 
 // 1. Prepare validation request data
 const validationData = {
