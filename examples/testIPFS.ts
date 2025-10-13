@@ -481,4 +481,10 @@ if (require.main === module) {
     });
 }
 
-export { uploadFileBuffer, uploadWithManifest, bulkUpload };
+export { 
+  uploadFileBuffer, 
+  uploadWithManifest, 
+  bulkUpload,
+  completeAgentLifecycle,
+  discoverAgent
+};
