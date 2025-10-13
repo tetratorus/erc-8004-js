@@ -5,12 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "test:register": "ts-node examples/testRegister.ts",
-    "test:feedback": "ts-node examples/testFeedback.ts",
-    "test:validation": "ts-node examples/testValidation.ts",
-    "test:viem": "ts-node examples/testViem.ts",
-    "test": "npm run test:register"
+    "build": "tsc"
   },
   "keywords": [
     "erc8004",

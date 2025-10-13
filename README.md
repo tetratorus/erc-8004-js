@@ -164,9 +164,43 @@ await client.validation.validationResponse({
 const status = await client.validation.getValidationStatus(requestHash);
 ```
 
-## IPFS Utilities
+## IPFS Integration
 
-The SDK includes helpers for working with IPFS CIDs:
+The SDK includes comprehensive IPFS support for uploading, pinning, and fetching content.
+
+### Quick Example
+
+```typescript
+import { createIPFSClient } from 'erc8004-sdk';
+
+// Create IPFS client (supports Pinata, NFT.Storage, Web3.Storage, local IPFS)
+const ipfs = createIPFSClient({
+  provider: 'pinata',
+  apiKey: process.env.PINATA_API_KEY,
+  apiSecret: process.env.PINATA_API_SECRET,
+});
+
+// Upload agent registration data
+const agentData = {
+  type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
+  name: 'My Agent',
+  description: 'AI agent for task automation',
+  endpoints: [/* ... */],
+};
+
+const result = await ipfs.uploadJSON(agentData);
+console.log('IPFS URI:', result.uri); // ipfs://Qm...
+
+// Register agent with IPFS URI
+await client.identity.registerWithURI(result.uri);
+
+// Fetch content from IPFS
+const data = await ipfs.fetchJSON(result.cid);
+```
+
+### CID Conversion Utilities
+
+Convert IPFS CIDs to bytes32 for on-chain storage:
 
 ```typescript
 import { cidToBytes32, ipfsUriToBytes32 } from 'erc8004-sdk';
@@ -180,15 +214,18 @@ const uri = 'ipfs://QmR7GSQM93Cx5eAg6a6yRzNde1FQv7uL6X1o4k7zrJa3LX';
 const hash2 = ipfsUriToBytes32(uri);
 ```
 
+📚 **[Full IPFS Guide](./docs/IPFS_GUIDE.md)** - Comprehensive documentation with examples for all IPFS providers
+
 ## Examples
 
 See the `examples/` directory for complete working examples:
 
-- `testRegister.ts` - Agent registration
-- `testFeedback.ts` - Reputation and feedback flow
+- `testIdentity.ts` - Agent registration
+- `testReputation.ts` - Reputation and feedback flow
 - `testValidation.ts` - Validation requests and responses
 - `testViem.ts` - Using the Viem adapter
 - `testChaosChain.ts` - Testing against Sepolia deployment
+- `testIPFS.ts` - IPFS uploading, pinning, and fetching
 
 Run examples:
 
