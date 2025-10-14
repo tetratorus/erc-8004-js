@@ -117,7 +117,7 @@ async function main() {
     score: 95,
     tag1: 'excellent-service',
     tag2: 'viem-test',
-    fileuri: 'ipfs://QmViemFeedback123',
+    feedbackUri: 'ipfs://QmViemFeedback123',
     feedbackAuth: signedAuth,
   });
   console.log(`✅ Feedback submitted`);

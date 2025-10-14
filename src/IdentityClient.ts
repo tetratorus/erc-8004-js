@@ -108,15 +108,15 @@ export class IdentityClient {
   /**
    * Set the token URI for an agent
    * Note: This is an implementation-specific extension (not in base spec).
-   * Assumes implementation exposes setTokenURI with owner/operator checks.
+   * Assumes implementation exposes setAgentUri with owner/operator checks.
    * @param agentId - The agent's ID
    * @param uri - New URI string
    */
-  async setTokenURI(agentId: bigint, uri: string): Promise<{ txHash: string }> {
+  async setAgentUri(agentId: bigint, uri: string): Promise<{ txHash: string }> {
     const result = await this.adapter.send(
       this.contractAddress,
       IdentityRegistryABI,
-      'setTokenURI',
+      'setAgentUri',
       [agentId, uri]
     );
 
@@ -202,14 +202,17 @@ export class IdentityClient {
    */
   private extractAgentIdFromReceipt(result: any): bigint {
     // Look for Registered event in parsed events
-    if (result.events) {
+    if (result.events && result.events.length > 0) {
       const registeredEvent = result.events.find((e: any) => e.name === 'Registered');
       if (registeredEvent && registeredEvent.args) {
         return BigInt(registeredEvent.args.agentId || registeredEvent.args[0]);
       }
     }
 
-    throw new Error('Could not extract agentId from transaction receipt - Registered event not found');
+    throw new Error(
+      'Could not extract agentId from transaction receipt - Registered event not found. ' +
+      'This usually means the contract is not deployed or the ABI does not match the deployed contract.'
+    );
   }
 
   /**

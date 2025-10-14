@@ -55,7 +55,7 @@ async function main() {
 
     // Set the tokenURI after registration
     const newURI = 'ipfs://QmNewAgent456';
-    await client.identity.setTokenURI(result1.agentId, newURI);
+    await client.identity.setAgentUri(result1.agentId, newURI);
     console.log(`✅ Set tokenURI to: ${newURI}`);
 
     // Verify it was set

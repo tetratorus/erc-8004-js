@@ -210,12 +210,12 @@ async function main() {
     console.log();
 
     // Now you can use this URI when submitting feedback
-    // await client.reputation.submitFeedback({
+    // await client.reputation.giveFeedback({
     //   agentId: registration.agentId,
     //   score: 95,
-    //   fileuri: feedbackResult.uri,
-    //   filehash: '0x0000...', // Optional for IPFS URIs
-    //   ...
+    //   feedbackUri: feedbackResult.uri,
+    //   feedbackHash: '0x0000...', // Optional for IPFS URIs
+    //   feedbackAuth: signedAuth,
     // });
 
   } catch (error) {
