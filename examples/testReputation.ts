@@ -190,6 +190,55 @@ async function main() {
     console.log(`   [${i}] Client: ${allFeedback.clientAddresses[i].slice(0, 10)}... Score: ${allFeedback.scores[i]}`);
   }
 
+  // Step 11: Revoke the first feedback
+  console.log('\n📋 Step 11: Revoking first feedback...');
+  const revokeResult = await clientSDK.reputation.revokeFeedback(
+    agentId,
+    BigInt(1) // Revoke the first feedback at index 1
+  );
+  console.log(`✅ Feedback revoked!`);
+  console.log(`   TX Hash: ${revokeResult.txHash}\n`);
+
+  // Step 12: Verify feedback is revoked
+  console.log('📋 Step 12: Verifying feedback revocation...');
+  const revokedFeedback = await clientSDK.reputation.readFeedback(
+    agentId,
+    clientAddress,
+    BigInt(1)
+  );
+  console.log(`✅ Feedback status:`);
+  console.log(`   Score: ${revokedFeedback.score} / 100`);
+  console.log(`   Revoked: ${revokedFeedback.isRevoked}`);
+  if (revokedFeedback.isRevoked) {
+    console.log(`   ✓ Feedback successfully marked as revoked\n`);
+  } else {
+    console.log(`   ✗ WARNING: Feedback should be revoked but isRevoked is false\n`);
+  }
+
+  // Step 13: Check updated summary (revoked feedback should not count)
+  console.log('📋 Step 13: Getting summary after revocation...');
+  const summaryAfterRevoke = await clientSDK.reputation.getSummary(agentId);
+  console.log(`✅ Reputation summary after revocation:`);
+  console.log(`   Feedback Count: ${summaryAfterRevoke.count}`);
+  console.log(`   Average Score: ${summaryAfterRevoke.averageScore} / 100`);
+  console.log(`   (Should only count the non-revoked feedback)\n`);
+
+  // Step 14: Read all feedback including revoked
+  console.log('📋 Step 14: Reading all feedback including revoked...');
+  const allFeedbackWithRevoked = await clientSDK.reputation.readAllFeedback(
+    agentId,
+    undefined,
+    undefined,
+    undefined,
+    true // includeRevoked = true
+  );
+  console.log(`✅ All feedback (including revoked):`);
+  console.log(`   Total: ${allFeedbackWithRevoked.scores.length} feedback entries`);
+  for (let i = 0; i < allFeedbackWithRevoked.scores.length; i++) {
+    const revokedStatus = allFeedbackWithRevoked.revokedStatuses[i] ? '[REVOKED]' : '';
+    console.log(`   [${i}] Score: ${allFeedbackWithRevoked.scores[i]} ${revokedStatus}`);
+  }
+
   console.log('\n🎉 All tests completed successfully!');
 }
 
