@@ -16,9 +16,9 @@ import { ERC8004Client, EthersAdapter } from '../src';
 import { ethers } from 'ethers';
 
 // Contract addresses from your deployment
-const IDENTITY_REGISTRY = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
-const REPUTATION_REGISTRY = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
-const VALIDATION_REGISTRY = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0';
+const IDENTITY_REGISTRY = '0xdc64a140aa3e981100a9beca4e685f962f0cf6c9';
+const REPUTATION_REGISTRY = '0x0165878a594ca255338adfa4d48449f69242eb8f';
+const VALIDATION_REGISTRY = '0x2279b7a0a67db372996a5fab50d91eaa73d2ebe6';
 
 async function main() {
   console.log('🚀 ERC-8004 SDK Test\n');
