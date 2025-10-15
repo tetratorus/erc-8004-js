@@ -17,9 +17,9 @@ import { ERC8004Client, EthersAdapter } from '../src';
 import { ethers } from 'ethers';
 
 // Contract addresses from your deployment
-const IDENTITY_REGISTRY = '0x7177a6867296406881E20d6647232314736Dd09A';
-const REPUTATION_REGISTRY = '0xB5048e3ef1DA4E04deB6f7d0423D06F63869e322';
-const VALIDATION_REGISTRY = '0x662b40A526cb4017d947e71eAF6753BF3eeE66d8';
+const IDENTITY_REGISTRY = '0x8004a6090Cd10A7288092483047B097295Fb8847';
+const REPUTATION_REGISTRY = '0x8004B8FD1A363aa02fDC07635C0c5F94f6Af5B7E';
+const VALIDATION_REGISTRY = '0x8004CB39f29c09145F24Ad9dDe2A108C1A2cdfC5';
 
 /**
  * Generate a random CIDv0 (Qm...) for testing purposes
@@ -99,8 +99,9 @@ async function main() {
   console.log(`Agent Owner: ${agentOwnerAddress}`);
   console.log(`Feedback Giver: ${feedbackGiverAddress}\n`);
 
-  // Test 1: Register agent with URI and metadata
-  console.log('Test 1: Register agent with URI and on-chain metadata');
+  // Register a single agent that will be used for all tests
+  console.log('Registering agent with URI and metadata...');
+  let agentId: bigint;
   try {
     const registrationURI = `ipfs://${generateRandomCIDv0()}`;
     const metadata = [
@@ -108,35 +109,32 @@ async function main() {
       { key: 'agentWallet', value: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7' }
     ];
 
-    const result1 = await client.identity.registerWithMetadata(
+    const result = await client.identity.registerWithMetadata(
       registrationURI,
       metadata
     );
-    console.log(`✅ Registered agent ID: ${result1.agentId}`);
-    console.log(`   TX Hash: ${result1.txHash}`);
-    console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${result1.txHash}`);
-    console.log(`   Owner: ${await client.identity.getOwner(result1.agentId)}`);
-    console.log(`   URI: ${await client.identity.getTokenURI(result1.agentId)}`);
+    agentId = result.agentId;
+    console.log(`✅ Registered agent ID: ${agentId}`);
+    console.log(`   TX Hash: ${result.txHash}`);
+    console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${result.txHash}`);
+    console.log(`   Owner: ${await client.identity.getOwner(agentId)}`);
+    console.log(`   URI: ${await client.identity.getTokenURI(agentId)}`);
 
     // Read back metadata
-    const agentName = await client.identity.getMetadata(result1.agentId, 'agentName');
-    const agentWallet = await client.identity.getMetadata(result1.agentId, 'agentWallet');
+    const agentName = await client.identity.getMetadata(agentId, 'agentName');
+    const agentWallet = await client.identity.getMetadata(agentId, 'agentWallet');
     console.log(`   Metadata - agentName: ${agentName}`);
     console.log(`   Metadata - agentWallet: ${agentWallet}\n`);
   } catch (error: any) {
     console.error(`❌ Error: ${error.message}\n`);
+    return;
   }
 
-  // Test 2: Set metadata after registration
-  console.log('Test 2: Set metadata after registration');
+  // Test 1: Set metadata after registration
+  console.log('Test 1: Set metadata after registration');
   try {
-    const result2 = await client.identity.register();
-    console.log(`✅ Registered agent ID: ${result2.agentId}`);
-    console.log(`   TX Hash: ${result2.txHash}`);
-    console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${result2.txHash}`);
-
-    const setMetadataResult = await client.identity.setMetadata(result2.agentId, 'status', 'active');
-    const status = await client.identity.getMetadata(result2.agentId, 'status');
+    const setMetadataResult = await client.identity.setMetadata(agentId, 'status', 'active');
+    const status = await client.identity.getMetadata(agentId, 'status');
     console.log(`   Set metadata - status: ${status}`);
     console.log(`   TX Hash: ${setMetadataResult.txHash}`);
     console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${setMetadataResult.txHash}\n`);
@@ -144,15 +142,9 @@ async function main() {
     console.error(`❌ Error: ${error.message}\n`);
   }
 
-  // Test 3: Create feedbackAuth and submit feedback
-  console.log('Test 3: Create feedbackAuth and submit feedback');
+  // Test 2: Create feedbackAuth and submit feedback
+  console.log('Test 2: Create feedbackAuth and submit feedback');
   try {
-    const result3 = await client.identity.register();
-    const agentId = result3.agentId;
-    console.log(`✅ Registered agent ID: ${agentId}`);
-    console.log(`   TX Hash: ${result3.txHash}`);
-    console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${result3.txHash}`);
-
     // Get chain ID
     const chainId = await client.getChainId();
 
@@ -211,16 +203,9 @@ async function main() {
     console.error(`❌ Error: ${error.message}\n`);
   }
 
-  // Test 4: Validation workflow
-  console.log('Test 4: Validation workflow');
+  // Test 3: Validation workflow
+  console.log('Test 3: Validation workflow');
   try {
-    // Register a new agent for validation testing
-    const result4 = await client.identity.register();
-    const validationAgentId = result4.agentId;
-    console.log(`✅ Registered agent ID for validation: ${validationAgentId}`);
-    console.log(`   TX Hash: ${result4.txHash}`);
-    console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${result4.txHash}`);
-
     // Generate a random IPFS CID for the validation request
     const validationCid = generateRandomCIDv0();
     const requestUri = `ipfs://${validationCid}`;
@@ -232,7 +217,7 @@ async function main() {
     // Request validation from feedback giver (acting as validator)
     const requestResult = await client.validation.validationRequest({
       validatorAddress: feedbackGiverAddress,
-      agentId: validationAgentId,
+      agentId: agentId,
       requestUri,
       requestHash,
     });
@@ -242,6 +227,19 @@ async function main() {
     console.log(`   Request Hash: ${requestResult.requestHash}`);
     console.log(`   TX Hash: ${requestResult.txHash}`);
     console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${requestResult.txHash}`);
+
+    // Wait for 1 block confirmation
+    console.log(`   Waiting for 1 block confirmation...`);
+    const requestTxReceipt = await provider.getTransactionReceipt(requestResult.txHash);
+    if (requestTxReceipt) {
+      const requestBlockNumber = requestTxReceipt.blockNumber;
+      let currentBlock = await provider.getBlockNumber();
+      while (currentBlock < requestBlockNumber + 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        currentBlock = await provider.getBlockNumber();
+      }
+      console.log(`   ✅ Block confirmation received (block ${currentBlock})`);
+    }
 
     // Validator (feedback giver) provides response
     const responseUri = `ipfs://${generateRandomCIDv0()}`;
@@ -268,13 +266,13 @@ async function main() {
     console.log(`   Last Update: ${new Date(Number(status.lastUpdate) * 1000).toISOString()}`);
 
     // Get validation summary for agent
-    const validationSummary = await client.validation.getSummary(validationAgentId, [feedbackGiverAddress]);
+    const validationSummary = await client.validation.getSummary(agentId, [feedbackGiverAddress]);
     console.log(`✅ Validation summary:`);
     console.log(`   Validation Count: ${validationSummary.count}`);
     console.log(`   Average Response: ${validationSummary.avgResponse} / 100`);
 
     // Get all validation requests for agent
-    const agentValidations = await client.validation.getAgentValidations(validationAgentId);
+    const agentValidations = await client.validation.getAgentValidations(agentId);
     console.log(`✅ Agent validations retrieved:`);
     console.log(`   Total validations: ${agentValidations.length}`);
     for (let i = 0; i < agentValidations.length; i++) {
