@@ -72,7 +72,7 @@ async function main() {
   const agentAdapter = new EthersAdapter(provider, agentOwner);
 
   // Initialize SDK with adapter for agent owner
-  const client = new ERC8004Client({
+  const agentClient = new ERC8004Client({
     adapter: agentAdapter,
     addresses: {
       identityRegistry: IDENTITY_REGISTRY,
@@ -109,7 +109,7 @@ async function main() {
       { key: 'agentWallet', value: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7' }
     ];
 
-    const result = await client.identity.registerWithMetadata(
+    const result = await agentClient.identity.registerWithMetadata(
       registrationURI,
       metadata
     );
@@ -117,12 +117,12 @@ async function main() {
     console.log(`✅ Registered agent ID: ${agentId}`);
     console.log(`   TX Hash: ${result.txHash}`);
     console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${result.txHash}`);
-    console.log(`   Owner: ${await client.identity.getOwner(agentId)}`);
-    console.log(`   URI: ${await client.identity.getTokenURI(agentId)}`);
+    console.log(`   Owner: ${await agentClient.identity.getOwner(agentId)}`);
+    console.log(`   URI: ${await agentClient.identity.getTokenURI(agentId)}`);
 
     // Read back metadata
-    const agentName = await client.identity.getMetadata(agentId, 'agentName');
-    const agentWallet = await client.identity.getMetadata(agentId, 'agentWallet');
+    const agentName = await agentClient.identity.getMetadata(agentId, 'agentName');
+    const agentWallet = await agentClient.identity.getMetadata(agentId, 'agentWallet');
     console.log(`   Metadata - agentName: ${agentName}`);
     console.log(`   Metadata - agentWallet: ${agentWallet}\n`);
   } catch (error: any) {
@@ -133,8 +133,8 @@ async function main() {
   // Test 1: Set metadata after registration
   console.log('Test 1: Set metadata after registration');
   try {
-    const setMetadataResult = await client.identity.setMetadata(agentId, 'status', 'active');
-    const status = await client.identity.getMetadata(agentId, 'status');
+    const setMetadataResult = await agentClient.identity.setMetadata(agentId, 'status', 'active');
+    const status = await agentClient.identity.getMetadata(agentId, 'status');
     console.log(`   Set metadata - status: ${status}`);
     console.log(`   TX Hash: ${setMetadataResult.txHash}`);
     console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${setMetadataResult.txHash}\n`);
@@ -146,14 +146,14 @@ async function main() {
   console.log('Test 2: Create feedbackAuth and submit feedback');
   try {
     // Get chain ID
-    const chainId = await client.getChainId();
+    const chainId = await agentClient.getChainId();
 
     // Get the last feedback index for the feedback giver
-    const lastIndex = await client.reputation.getLastIndex(agentId, feedbackGiverAddress);
+    const lastIndex = await agentClient.reputation.getLastIndex(agentId, feedbackGiverAddress);
     console.log(`   Last feedback index: ${lastIndex}`);
 
     // Create feedbackAuth (agent owner authorizes feedback giver)
-    const feedbackAuth = client.reputation.createFeedbackAuth(
+    const feedbackAuth = agentClient.reputation.createFeedbackAuth(
       agentId,
       feedbackGiverAddress,
       lastIndex + BigInt(1), // Allow next feedback
@@ -164,7 +164,7 @@ async function main() {
     console.log(`✅ FeedbackAuth created (indexLimit: ${feedbackAuth.indexLimit})`);
 
     // Agent owner signs the feedbackAuth
-    const signedAuth = await client.reputation.signFeedbackAuth(feedbackAuth);
+    const signedAuth = await agentClient.reputation.signFeedbackAuth(feedbackAuth);
     console.log(`✅ FeedbackAuth signed: ${signedAuth.slice(0, 20)}...`);
 
     // Feedback giver submits feedback
@@ -195,7 +195,7 @@ async function main() {
     console.log(`   Tag2: ${feedback.tag2}`);
 
     // Get reputation summary
-    const summary = await client.reputation.getSummary(agentId);
+    const summary = await agentClient.reputation.getSummary(agentId);
     console.log(`✅ Reputation summary:`);
     console.log(`   Feedback Count: ${summary.count}`);
     console.log(`   Average Score: ${summary.averageScore} / 100\n`);
@@ -215,7 +215,7 @@ async function main() {
     const requestHash = ipfsUriToBytes32(requestUri);
 
     // Request validation from feedback giver (acting as validator)
-    const requestResult = await client.validation.validationRequest({
+    const requestResult = await agentClient.validation.validationRequest({
       validatorAddress: feedbackGiverAddress,
       agentId: agentId,
       requestUri,
@@ -257,7 +257,7 @@ async function main() {
     console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${responseResult.txHash}`);
 
     // Read validation status
-    const status = await client.validation.getValidationStatus(requestHash);
+    const status = await agentClient.validation.getValidationStatus(requestHash);
     console.log(`✅ Validation status retrieved:`);
     console.log(`   Validator: ${status.validatorAddress}`);
     console.log(`   Agent ID: ${status.agentId}`);
@@ -266,13 +266,13 @@ async function main() {
     console.log(`   Last Update: ${new Date(Number(status.lastUpdate) * 1000).toISOString()}`);
 
     // Get validation summary for agent
-    const validationSummary = await client.validation.getSummary(agentId, [feedbackGiverAddress]);
+    const validationSummary = await agentClient.validation.getSummary(agentId, [feedbackGiverAddress]);
     console.log(`✅ Validation summary:`);
     console.log(`   Validation Count: ${validationSummary.count}`);
     console.log(`   Average Response: ${validationSummary.avgResponse} / 100`);
 
     // Get all validation requests for agent
-    const agentValidations = await client.validation.getAgentValidations(agentId);
+    const agentValidations = await agentClient.validation.getAgentValidations(agentId);
     console.log(`✅ Agent validations retrieved:`);
     console.log(`   Total validations: ${agentValidations.length}`);
     for (let i = 0; i < agentValidations.length; i++) {
