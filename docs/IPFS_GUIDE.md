@@ -308,8 +308,8 @@ await client.reputation.submitFeedback({
   score: 95,
   fileuri: result.uri,
   filehash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-  tag1: ethers.encodeBytes32String('task-completion'),
-  tag2: ethers.encodeBytes32String('high-quality'),
+  tag1: 'task-completion',
+  tag2: 'high-quality',
   feedbackAuth: /* ... */,
 });
 ```
@@ -340,7 +340,7 @@ await client.validation.requestValidation({
   validatorAddress: '0x...',
   requestUri: result.uri,
   requestHash,
-  tag: ethers.encodeBytes32String('output-verification'),
+  tag: 'output-verification',
 });
 ```
 

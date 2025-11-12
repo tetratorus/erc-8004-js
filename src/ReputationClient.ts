@@ -11,11 +11,10 @@ import { ethers } from 'ethers';
 export interface GiveFeedbackParams {
   agentId: bigint;
   score: number; // MUST be 0-100
-  tag1?: string; // OPTIONAL (bytes32)
-  tag2?: string; // OPTIONAL (bytes32)
+  tag1?: string; // OPTIONAL (string)
+  tag2?: string; // OPTIONAL (string)
   feedbackUri?: string; // OPTIONAL
   feedbackHash?: string; // OPTIONAL (bytes32, KECCAK-256 of feedbackUri content)
-  feedbackAuth: string; // Signed feedbackAuth
 }
 
 export class ReputationClient {
@@ -100,7 +99,7 @@ export class ReputationClient {
 
   /**
    * Submit feedback for an agent
-   * Spec: function giveFeedback(uint256 agentId, uint8 score, bytes32 tag1, bytes32 tag2, string calldata feedbackUri, bytes32 calldata feedbackHash, bytes memory feedbackAuth)
+   * Spec: function giveFeedback(uint256 agentId, uint8 score, string tag1, string tag2, string calldata feedbackUri, bytes32 calldata feedbackHash)
    *
    * @param params - Feedback parameters (score is MUST, others are OPTIONAL)
    * @returns Transaction result
@@ -111,9 +110,9 @@ export class ReputationClient {
       throw new Error('Score MUST be between 0 and 100');
     }
 
-    // Convert optional string parameters to bytes32 (or empty bytes32 if not provided)
-    const tag1 = params.tag1 ? ethers.id(params.tag1).slice(0, 66) : ethers.ZeroHash;
-    const tag2 = params.tag2 ? ethers.id(params.tag2).slice(0, 66) : ethers.ZeroHash;
+    // Use empty strings if not provided
+    const tag1 = params.tag1 || '';
+    const tag2 = params.tag2 || '';
     const feedbackHash = params.feedbackHash || ethers.ZeroHash;
     const feedbackUri = params.feedbackUri || '';
 
@@ -128,7 +127,6 @@ export class ReputationClient {
         tag2,
         feedbackUri,
         feedbackHash,
-        params.feedbackAuth,
       ]
     );
 

@@ -69,16 +69,16 @@ export class IdentityClient {
     tokenURI: string,
     metadata: MetadataEntry[] = []
   ): Promise<{ agentId: bigint; txHash: string }> {
-    // Convert metadata to contract format
+    // Convert metadata to contract format (string, string)
     const metadataFormatted = metadata.map(m => ({
-      key: m.key,
-      value: this.stringToBytes(m.value)
+      metadataKey: m.key,
+      metadataValue: m.value
     }));
 
     const result = await this.adapter.send(
       this.contractAddress,
       IdentityRegistryABI,
-      'register(string,(string,bytes)[])',
+      'register(string,(string,string)[])',
       [tokenURI, metadataFormatted]
     );
 
@@ -139,23 +139,22 @@ export class IdentityClient {
 
   /**
    * Get on-chain metadata for an agent
-   * Spec: function getMetadata(uint256 agentId, string key) returns (bytes)
+   * Spec: function getMetadata(uint256 agentId, string key) returns (string)
    * @param agentId - The agent's ID
    * @param key - Metadata key
    */
   async getMetadata(agentId: bigint, key: string): Promise<string> {
-    const bytes = await this.adapter.call(
+    return await this.adapter.call(
       this.contractAddress,
       IdentityRegistryABI,
       'getMetadata',
       [agentId, key]
     );
-    return this.bytesToString(bytes);
   }
 
   /**
    * Set on-chain metadata for an agent
-   * Spec: function setMetadata(uint256 agentId, string key, bytes value)
+   * Spec: function setMetadata(uint256 agentId, string key, string value)
    * @param agentId - The agent's ID
    * @param key - Metadata key
    * @param value - Metadata value
@@ -165,7 +164,7 @@ export class IdentityClient {
       this.contractAddress,
       IdentityRegistryABI,
       'setMetadata',
-      [agentId, key, this.stringToBytes(value)]
+      [agentId, key, value]
     );
 
     return { txHash: result.txHash };

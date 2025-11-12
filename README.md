@@ -31,9 +31,9 @@ const adapter = new EthersAdapter(provider, signer);
 const client = new ERC8004Client({
   adapter,
   addresses: {
-    identityRegistry: '0x8004a6090Cd10A7288092483047B097295Fb8847',
-    reputationRegistry: '0x8004B8FD1A363aa02fDC07635C0c5F94f6Af5B7E',
-    validationRegistry: '0x8004CB39f29c09145F24Ad9dDe2A108C1A2cdfC5',
+    identityRegistry: '0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997',
+    reputationRegistry: '0x8004B312333aCb5764597c2BeEe256596B5C6876',
+    validationRegistry: '0x8004C8AEF64521bC97AB50799d394CDb785885E3',
     chainId: 11155111, // Sepolia
   },
 });
@@ -61,26 +61,13 @@ const tokenURI = await client.identity.getTokenURI(agentId);
 ### Reputation & Feedback
 
 ```typescript
-// Create feedback authorization (agent owner signs)
-const feedbackAuth = client.reputation.createFeedbackAuth(
-  agentId,
-  clientAddress,
-  indexLimit,
-  expiry,
-  chainId,
-  signerAddress
-);
-
-const signedAuth = await client.reputation.signFeedbackAuth(feedbackAuth);
-
-// Submit feedback
+// Submit feedback (no authorization required)
 await client.reputation.giveFeedback({
   agentId,
   score: 95, // 0-100
   tag1: 'excellent-service',
   tag2: 'fast-response',
-  fileuri: 'ipfs://QmFeedbackData',
-  feedbackAuth: signedAuth,
+  feedbackUri: 'ipfs://QmFeedbackData',
 });
 
 // Get reputation summary

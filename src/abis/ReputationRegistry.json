@@ -1,40 +1,87 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_identityRegistry",
-        "type": "address"
-      }
-    ],
+    "inputs": [],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
   {
-    "inputs": [],
-    "name": "ECDSAInvalidSignature",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "target",
+        "type": "address"
+      }
+    ],
+    "name": "AddressEmptyCode",
     "type": "error"
   },
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "length",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
       }
     ],
-    "name": "ECDSAInvalidSignatureLength",
+    "name": "ERC1967InvalidImplementation",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ERC1967NonPayable",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "FailedCall",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidInitialization",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotInitializing",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UUPSUnauthorizedCallContext",
     "type": "error"
   },
   {
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "s",
+        "name": "slot",
         "type": "bytes32"
       }
     ],
-    "name": "ECDSAInvalidSignatureS",
+    "name": "UUPSUnsupportedProxiableUUID",
     "type": "error"
   },
   {
@@ -66,6 +113,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "uint256",
         "name": "agentId",
@@ -85,15 +145,15 @@
       },
       {
         "indexed": true,
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag1",
-        "type": "bytes32"
+        "type": "string"
       },
       {
         "indexed": false,
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag2",
-        "type": "bytes32"
+        "type": "string"
       },
       {
         "indexed": false,
@@ -109,6 +169,25 @@
       }
     ],
     "name": "NewFeedback",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
     "type": "event"
   },
   {
@@ -153,6 +232,32 @@
     ],
     "name": "ResponseAppended",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "UPGRADE_INTERFACE_VERSION",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
@@ -290,14 +395,14 @@
         "type": "address[]"
       },
       {
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag1",
-        "type": "bytes32"
+        "type": "string"
       },
       {
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag2",
-        "type": "bytes32"
+        "type": "string"
       }
     ],
     "name": "getSummary",
@@ -317,6 +422,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getVersion",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -329,14 +447,14 @@
         "type": "uint8"
       },
       {
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag1",
-        "type": "bytes32"
+        "type": "string"
       },
       {
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag2",
-        "type": "bytes32"
+        "type": "string"
       },
       {
         "internalType": "string",
@@ -347,16 +465,50 @@
         "internalType": "bytes32",
         "name": "feedbackHash",
         "type": "bytes32"
-      },
-      {
-        "internalType": "bytes",
-        "name": "feedbackAuth",
-        "type": "bytes"
       }
     ],
     "name": "giveFeedback",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_identityRegistry",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "proxiableUUID",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -372,14 +524,14 @@
         "type": "address[]"
       },
       {
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag1",
-        "type": "bytes32"
+        "type": "string"
       },
       {
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag2",
-        "type": "bytes32"
+        "type": "string"
       },
       {
         "internalType": "bool",
@@ -400,14 +552,14 @@
         "type": "uint8[]"
       },
       {
-        "internalType": "bytes32[]",
+        "internalType": "string[]",
         "name": "tag1s",
-        "type": "bytes32[]"
+        "type": "string[]"
       },
       {
-        "internalType": "bytes32[]",
+        "internalType": "string[]",
         "name": "tag2s",
-        "type": "bytes32[]"
+        "type": "string[]"
       },
       {
         "internalType": "bool[]",
@@ -444,14 +596,14 @@
         "type": "uint8"
       },
       {
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag1",
-        "type": "bytes32"
+        "type": "string"
       },
       {
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "tag2",
-        "type": "bytes32"
+        "type": "string"
       },
       {
         "internalType": "bool",
@@ -460,6 +612,13 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -478,6 +637,37 @@
     "name": "revokeFeedback",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "upgradeToAndCall",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   }
 ]

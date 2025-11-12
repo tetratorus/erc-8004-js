@@ -8,6 +8,33 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "target",
+        "type": "address"
+      }
+    ],
+    "name": "AddressEmptyCode",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "ERC1967InvalidImplementation",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ERC1967NonPayable",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "sender",
         "type": "address"
       },
@@ -108,6 +135,21 @@
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "FailedCall",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidInitialization",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotInitializing",
+    "type": "error"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -127,6 +169,22 @@
       }
     ],
     "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UUPSUnauthorizedCallContext",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "slot",
+        "type": "bytes32"
+      }
+    ],
+    "name": "UUPSUnsupportedProxiableUUID",
     "type": "error"
   },
   {
@@ -202,6 +260,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "uint256",
         "name": "agentId",
@@ -210,20 +281,20 @@
       {
         "indexed": true,
         "internalType": "string",
-        "name": "indexedKey",
+        "name": "indexedMetadataKey",
         "type": "string"
       },
       {
         "indexed": false,
         "internalType": "string",
-        "name": "key",
+        "name": "metadataKey",
         "type": "string"
       },
       {
         "indexed": false,
-        "internalType": "bytes",
-        "name": "value",
-        "type": "bytes"
+        "internalType": "string",
+        "name": "metadataValue",
+        "type": "string"
       }
     ],
     "name": "MetadataSet",
@@ -273,7 +344,7 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "tokenURI",
+        "name": "agentUri",
         "type": "string"
       },
       {
@@ -316,6 +387,19 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "uint256",
         "name": "agentId",
         "type": "uint256"
@@ -335,6 +419,19 @@
     ],
     "name": "UriUpdated",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "UPGRADE_INTERFACE_VERSION",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
@@ -401,19 +498,39 @@
       },
       {
         "internalType": "string",
-        "name": "key",
+        "name": "metadataKey",
         "type": "string"
       }
     ],
     "name": "getMetadata",
     "outputs": [
       {
-        "internalType": "bytes",
+        "internalType": "string",
         "name": "",
-        "type": "bytes"
+        "type": "string"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getVersion",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -487,6 +604,19 @@
   },
   {
     "inputs": [],
+    "name": "proxiableUUID",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "register",
     "outputs": [
       {
@@ -502,23 +632,23 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "tokenUri",
+        "name": "agentUri",
         "type": "string"
       },
       {
         "components": [
           {
             "internalType": "string",
-            "name": "key",
+            "name": "metadataKey",
             "type": "string"
           },
           {
-            "internalType": "bytes",
-            "name": "value",
-            "type": "bytes"
+            "internalType": "string",
+            "name": "metadataValue",
+            "type": "string"
           }
         ],
-        "internalType": "struct IdentityRegistry.MetadataEntry[]",
+        "internalType": "struct IdentityRegistryUpgradeable.MetadataEntry[]",
         "name": "metadata",
         "type": "tuple[]"
       }
@@ -538,7 +668,7 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "tokenUri",
+        "name": "agentUri",
         "type": "string"
       }
     ],
@@ -656,13 +786,13 @@
       },
       {
         "internalType": "string",
-        "name": "key",
+        "name": "metadataKey",
         "type": "string"
       },
       {
-        "internalType": "bytes",
-        "name": "value",
-        "type": "bytes"
+        "internalType": "string",
+        "name": "metadataValue",
+        "type": "string"
       }
     ],
     "name": "setMetadata",
@@ -755,6 +885,24 @@
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "upgradeToAndCall",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   }
 ]

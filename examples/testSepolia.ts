@@ -16,10 +16,10 @@ dotenv.config();
 import { ERC8004Client, EthersAdapter } from '../src';
 import { ethers } from 'ethers';
 
-// Contract addresses from your deployment
-const IDENTITY_REGISTRY = '0x8004a6090Cd10A7288092483047B097295Fb8847';
-const REPUTATION_REGISTRY = '0x8004B8FD1A363aa02fDC07635C0c5F94f6Af5B7E';
-const VALIDATION_REGISTRY = '0x8004CB39f29c09145F24Ad9dDe2A108C1A2cdfC5';
+// Contract addresses from your deployment (vanity addresses via CREATE2 - deterministic across chains)
+const IDENTITY_REGISTRY = '0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997';
+const REPUTATION_REGISTRY = '0x8004B312333aCb5764597c2BeEe256596B5C6876';
+const VALIDATION_REGISTRY = '0x8004C8AEF64521bC97AB50799d394CDb785885E3';
 
 /**
  * Generate a random CIDv0 (Qm...) for testing purposes
@@ -78,7 +78,7 @@ async function main() {
       identityRegistry: IDENTITY_REGISTRY,
       reputationRegistry: REPUTATION_REGISTRY,
       validationRegistry: VALIDATION_REGISTRY,
-      chainId: 31337, // Hardhat chain ID
+      chainId: 11155111, // Sepolia chain ID
     },
   });
 
@@ -90,7 +90,7 @@ async function main() {
       identityRegistry: IDENTITY_REGISTRY,
       reputationRegistry: REPUTATION_REGISTRY,
       validationRegistry: VALIDATION_REGISTRY,
-      chainId: 31337,
+      chainId: 11155111, // Sepolia chain ID
     },
   });
 
@@ -142,38 +142,15 @@ async function main() {
     console.error(`❌ Error: ${error.message}\n`);
   }
 
-  // Test 2: Create feedbackAuth and submit feedback
-  console.log('Test 2: Create feedbackAuth and submit feedback');
+  // Test 2: Submit feedback (no auth required)
+  console.log('Test 2: Submit feedback');
   try {
-    // Get chain ID
-    const chainId = await agentClient.getChainId();
-
-    // Get the last feedback index for the feedback giver
-    const lastIndex = await agentClient.reputation.getLastIndex(agentId, feedbackGiverAddress);
-    console.log(`   Last feedback index: ${lastIndex}`);
-
-    // Create feedbackAuth (agent owner authorizes feedback giver)
-    const feedbackAuth = agentClient.reputation.createFeedbackAuth(
-      agentId,
-      feedbackGiverAddress,
-      lastIndex + BigInt(1), // Allow next feedback
-      BigInt(Math.floor(Date.now() / 1000) + 3600), // Valid for 1 hour
-      BigInt(chainId),
-      agentOwnerAddress
-    );
-    console.log(`✅ FeedbackAuth created (indexLimit: ${feedbackAuth.indexLimit})`);
-
-    // Agent owner signs the feedbackAuth
-    const signedAuth = await agentClient.reputation.signFeedbackAuth(feedbackAuth);
-    console.log(`✅ FeedbackAuth signed: ${signedAuth.slice(0, 20)}...`);
-
     // Feedback giver submits feedback
     const feedbackResult = await feedbackClient.reputation.giveFeedback({
       agentId,
       score: 95,
       tag1: 'excellent',
       tag2: 'reliable',
-      feedbackAuth: signedAuth,
     });
     console.log(`✅ Feedback submitted!`);
     console.log(`   Score: 95 / 100`);
@@ -183,11 +160,10 @@ async function main() {
 
     // Read the feedback back
     // Note: Feedback indices are 1-based in the smart contract
-    // After submitting feedback, lastIndex is incremented to 1
     const feedback = await feedbackClient.reputation.readFeedback(
       agentId,
       feedbackGiverAddress,
-      lastIndex + BigInt(1) // Use the new index after submission
+      BigInt(1) // First feedback is at index 1
     );
     console.log(`✅ Feedback retrieved:`);
     console.log(`   Score: ${feedback.score} / 100`);

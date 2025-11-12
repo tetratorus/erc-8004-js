@@ -11,10 +11,10 @@
 import { createIPFSClient, ERC8004Client, EthersAdapter, IPFSClientConfig } from '../src';
 import { ethers } from 'ethers';
 
-// Contract addresses
-const IDENTITY_REGISTRY = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
-const REPUTATION_REGISTRY = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
-const VALIDATION_REGISTRY = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0';
+// Contract addresses (vanity addresses via CREATE2 - deterministic across chains)
+const IDENTITY_REGISTRY = '0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997';
+const REPUTATION_REGISTRY = '0x8004B312333aCb5764597c2BeEe256596B5C6876';
+const VALIDATION_REGISTRY = '0x8004C8AEF64521bC97AB50799d394CDb785885E3';
 
 // Example agent registration data
 const agentData = {
@@ -36,7 +36,7 @@ const agentData = {
   registrations: [
     {
       agentId: 1,
-      agentRegistry: 'eip155:31337:0x5FbDB2315678afecb367f032d93F642f64180aa3',
+      agentRegistry: 'eip155:31337:0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997',
     },
   ],
   supportedTrust: ['reputation', 'crypto-economic'],
@@ -212,15 +212,6 @@ async function main() {
     });
     console.log('✅ Feedback uploaded:', feedbackResult.uri);
     console.log();
-
-    // Now you can use this URI when submitting feedback
-    // await client.reputation.giveFeedback({
-    //   agentId: registration.agentId,
-    //   score: 95,
-    //   feedbackUri: feedbackResult.uri,
-    //   feedbackHash: '0x0000...', // Optional for IPFS URIs
-    //   feedbackAuth: signedAuth,
-    // });
 
   } catch (error) {
     console.error('❌ Error:', error instanceof Error ? error.message : error);

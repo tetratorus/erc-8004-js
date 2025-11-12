@@ -15,10 +15,10 @@
 import { ERC8004Client, EthersAdapter } from '../src';
 import { ethers } from 'ethers';
 
-// Contract addresses from your deployment
-const IDENTITY_REGISTRY = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
-const REPUTATION_REGISTRY = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
-const VALIDATION_REGISTRY = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0';
+// Contract addresses from your deployment (vanity addresses via CREATE2)
+const IDENTITY_REGISTRY = '0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997';
+const REPUTATION_REGISTRY = '0x8004B312333aCb5764597c2BeEe256596B5C6876';
+const VALIDATION_REGISTRY = '0x8004C8AEF64521bC97AB50799d394CDb785885E3';
 
 async function main() {
   console.log('🚀 ERC-8004 Reputation/Feedback Test\n');
@@ -71,64 +71,21 @@ async function main() {
   console.log(`✅ Agent registered with ID: ${agentId}`);
   console.log(`   TX Hash: ${registerResult.txHash}\n`);
 
-  // Step 2: Get chain ID and create feedbackAuth
-  console.log('📋 Step 2: Creating feedbackAuth...');
-  const chainId = await agentSDK.getChainId();
-
-  // Get the last feedback index for this client
-  // For a new client, this should return 0. Since feedback indices are 1-indexed,
-  // the first feedback will be at index 1
-  let lastIndex: bigint;
-  lastIndex = await agentSDK.reputation.getLastIndex(agentId, clientAddress);
-
-  console.log(`   Last feedback index: ${lastIndex}`);
-
-  // Create feedbackAuth
-  // Agent owner authorizes the client to give feedback
-  // Since indices are 1-indexed, first feedback is index 1
-  const feedbackAuth = agentSDK.reputation.createFeedbackAuth(
-    agentId,
-    clientAddress,
-    lastIndex + BigInt(1), // Allow next feedback (1 for first feedback, 2 for second, etc.)
-    BigInt(Math.floor(Date.now() / 1000) + 3600), // Valid for 1 hour
-    BigInt(chainId),
-    agentOwnerAddress // Signer is the agent owner
-  );
-  console.log(`✅ FeedbackAuth created`);
-  console.log(`   indexLimit: ${feedbackAuth.indexLimit}`);
-  console.log(`   expiry: ${feedbackAuth.expiry}\n`);
-
-  // Step 3: Agent owner signs the feedbackAuth
-  console.log('📋 Step 3: Signing feedbackAuth...');
-  const signedAuth = await agentSDK.reputation.signFeedbackAuth(feedbackAuth);
-  console.log(`✅ FeedbackAuth signed`);
-  console.log(`   Signature length: ${signedAuth.length}`);
-  console.log(`   Signature: ${signedAuth.slice(0, 20)}...\n`);
-  console.log(`   FeedbackAuth details:`);
-  console.log(`   - agentId: ${feedbackAuth.agentId}`);
-  console.log(`   - clientAddress: ${feedbackAuth.clientAddress}`);
-  console.log(`   - indexLimit: ${feedbackAuth.indexLimit}`);
-  console.log(`   - expiry: ${feedbackAuth.expiry}`);
-  console.log(`   - chainId: ${feedbackAuth.chainId}`);
-  console.log(`   - identityRegistry: ${feedbackAuth.identityRegistry}`);
-  console.log(`   - signerAddress: ${feedbackAuth.signerAddress}\n`);
-
-  // Step 4: Client submits feedback
-  console.log('📋 Step 4: Client submitting feedback...');
+  // Step 2: Client submits feedback (no auth required)
+  console.log('📋 Step 2: Client submitting feedback...');
   const feedbackResult = await clientSDK.reputation.giveFeedback({
     agentId,
     score: 95,
     tag1: 'excellent',
     tag2: 'fast',
-    feedbackAuth: signedAuth,
   });
   console.log(`✅ Feedback submitted!`);
   console.log(`   Score: 95 / 100`);
   console.log(`   Tags: excellent, fast`);
   console.log(`   TX Hash: ${feedbackResult.txHash}\n`);
 
-  // Step 5: Read the feedback back
-  console.log('📋 Step 5: Reading feedback...');
+  // Step 3: Read the feedback back
+  console.log('📋 Step 3: Reading feedback...');
   // Read the feedback we just submitted (at index 1 for first feedback)
   const feedback = await clientSDK.reputation.readFeedback(
     agentId,
@@ -141,48 +98,36 @@ async function main() {
   console.log(`   Tag2: ${feedback.tag2}`);
   console.log(`   Revoked: ${feedback.isRevoked}\n`);
 
-  // Step 6: Get reputation summary
-  console.log('📋 Step 6: Getting reputation summary...');
+  // Step 4: Get reputation summary
+  console.log('📋 Step 4: Getting reputation summary...');
   const summary = await clientSDK.reputation.getSummary(agentId, [clientAddress]);
   console.log(`✅ Reputation summary:`);
   console.log(`   Feedback Count: ${summary.count}`);
   console.log(`   Average Score: ${summary.averageScore} / 100\n`);
 
-  // Step 7: Get all clients who gave feedback
-  console.log('📋 Step 7: Getting all clients...');
+  // Step 5: Get all clients who gave feedback
+  console.log('📋 Step 5: Getting all clients...');
   const clients = await clientSDK.reputation.getClients(agentId);
   console.log(`✅ Clients who gave feedback: ${clients.length}`);
   console.log(`   ${clients.join(', ')}\n`);
 
-  // Step 8: Submit another feedback with higher score
-  console.log('📋 Step 8: Submitting second feedback...');
-  const newLastIndex = await agentSDK.reputation.getLastIndex(agentId, clientAddress);
-  const feedbackAuth2 = agentSDK.reputation.createFeedbackAuth(
-    agentId,
-    clientAddress,
-    newLastIndex + BigInt(1),
-    BigInt(Math.floor(Date.now() / 1000) + 3600),
-    BigInt(chainId),
-    agentOwnerAddress
-  );
-  const signedAuth2 = await agentSDK.reputation.signFeedbackAuth(feedbackAuth2);
-
+  // Step 6: Submit another feedback with higher score
+  console.log('📋 Step 6: Submitting second feedback...');
   await clientSDK.reputation.giveFeedback({
     agentId,
     score: 98,
-    feedbackAuth: signedAuth2,
   });
   console.log(`✅ Second feedback submitted (score: 98)\n`);
 
-  // Step 9: Get updated summary
-  console.log('📋 Step 9: Getting updated reputation summary...');
+  // Step 7: Get updated summary
+  console.log('📋 Step 7: Getting updated reputation summary...');
   const updatedSummary = await clientSDK.reputation.getSummary(agentId);
   console.log(`✅ Updated reputation summary:`);
   console.log(`   Feedback Count: ${updatedSummary.count}`);
   console.log(`   Average Score: ${updatedSummary.averageScore} / 100\n`);
 
-  // Step 10: Read all feedback
-  console.log('📋 Step 10: Reading all feedback...');
+  // Step 8: Read all feedback
+  console.log('📋 Step 8: Reading all feedback...');
   const allFeedback = await clientSDK.reputation.readAllFeedback(agentId);
   console.log(`✅ All feedback retrieved:`);
   console.log(`   Total: ${allFeedback.scores.length} feedback entries`);
