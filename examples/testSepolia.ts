@@ -263,6 +263,21 @@ async function main() {
     console.log(`   TX Hash: ${feedbackResult.txHash}`);
     console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${feedbackResult.txHash}`);
 
+    // Parse NewFeedback event to verify feedbackIndex is included
+    const receipt = await provider.getTransactionReceipt(feedbackResult.txHash);
+    const iface = new ethers.Interface([
+      'event NewFeedback(uint256 indexed agentId, address indexed clientAddress, uint64 feedbackIndex, uint8 score, string indexed tag1, string tag2, string endpoint, string feedbackURI, bytes32 feedbackHash)'
+    ]);
+    const newFeedbackLog = receipt?.logs.find(log => {
+      try {
+        return iface.parseLog({ topics: log.topics as string[], data: log.data })?.name === 'NewFeedback';
+      } catch { return false; }
+    });
+    if (newFeedbackLog) {
+      const parsed = iface.parseLog({ topics: newFeedbackLog.topics as string[], data: newFeedbackLog.data });
+      console.log(`   Event feedbackIndex: ${parsed?.args.feedbackIndex}`);
+    }
+
     // Read the feedback back
     // Note: Feedback indices are 1-based in the smart contract
     const feedback = await feedbackClient.reputation.readFeedback(
@@ -279,7 +294,16 @@ async function main() {
     const summary = await agentClient.reputation.getSummary(agentId);
     console.log(`✅ Reputation summary:`);
     console.log(`   Feedback Count: ${summary.count}`);
-    console.log(`   Average Score: ${summary.averageScore} / 100\n`);
+    console.log(`   Average Score: ${summary.averageScore} / 100`);
+
+    // Test readAllFeedback to verify feedbackIndexes are returned
+    const allFeedback = await agentClient.reputation.readAllFeedback(agentId);
+    console.log(`✅ All feedback (readAllFeedback):`);
+    console.log(`   Total: ${allFeedback.scores.length} entries`);
+    for (let i = 0; i < allFeedback.scores.length; i++) {
+      console.log(`   [${i}] Index: ${allFeedback.feedbackIndexes[i]} Score: ${allFeedback.scores[i]}`);
+    }
+    console.log();
   } catch (error: any) {
     console.error(`❌ Error: ${error.message}\n`);
   }

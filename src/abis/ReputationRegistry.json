@@ -139,6 +139,12 @@
       },
       {
         "indexed": false,
+        "internalType": "uint64",
+        "name": "feedbackIndex",
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
         "internalType": "uint8",
         "name": "score",
         "type": "uint8"
@@ -556,6 +562,11 @@
         "internalType": "address[]",
         "name": "clients",
         "type": "address[]"
+      },
+      {
+        "internalType": "uint64[]",
+        "name": "feedbackIndexes",
+        "type": "uint64[]"
       },
       {
         "internalType": "uint8[]",

@@ -82,7 +82,26 @@ async function main() {
   console.log(`✅ Feedback submitted!`);
   console.log(`   Score: 95 / 100`);
   console.log(`   Tags: excellent, fast`);
-  console.log(`   TX Hash: ${feedbackResult.txHash}\n`);
+  console.log(`   TX Hash: ${feedbackResult.txHash}`);
+
+  // Parse NewFeedback event to verify feedbackIndex is included
+  const receipt = await provider.getTransactionReceipt(feedbackResult.txHash);
+  const iface = new ethers.Interface([
+    'event NewFeedback(uint256 indexed agentId, address indexed clientAddress, uint64 feedbackIndex, uint8 score, string indexed tag1, string tag2, string endpoint, string feedbackURI, bytes32 feedbackHash)'
+  ]);
+  const newFeedbackLog = receipt?.logs.find(log => {
+    try {
+      return iface.parseLog({ topics: log.topics as string[], data: log.data })?.name === 'NewFeedback';
+    } catch { return false; }
+  });
+  if (newFeedbackLog) {
+    const parsed = iface.parseLog({ topics: newFeedbackLog.topics as string[], data: newFeedbackLog.data });
+    console.log(`   Event feedbackIndex: ${parsed?.args.feedbackIndex}`);
+    if (parsed?.args.feedbackIndex === BigInt(1)) {
+      console.log(`   ✓ feedbackIndex correctly set to 1 for first feedback`);
+    }
+  }
+  console.log();
 
   // Step 3: Read the feedback back
   console.log('📋 Step 3: Reading feedback...');
@@ -113,11 +132,28 @@ async function main() {
 
   // Step 6: Submit another feedback with higher score
   console.log('📋 Step 6: Submitting second feedback...');
-  await clientSDK.reputation.giveFeedback({
+  const feedback2Result = await clientSDK.reputation.giveFeedback({
     agentId,
     score: 98,
   });
-  console.log(`✅ Second feedback submitted (score: 98)\n`);
+  console.log(`✅ Second feedback submitted (score: 98)`);
+  console.log(`   TX Hash: ${feedback2Result.txHash}`);
+
+  // Verify feedbackIndex is 2 for second feedback
+  const receipt2 = await provider.getTransactionReceipt(feedback2Result.txHash);
+  const newFeedbackLog2 = receipt2?.logs.find(log => {
+    try {
+      return iface.parseLog({ topics: log.topics as string[], data: log.data })?.name === 'NewFeedback';
+    } catch { return false; }
+  });
+  if (newFeedbackLog2) {
+    const parsed2 = iface.parseLog({ topics: newFeedbackLog2.topics as string[], data: newFeedbackLog2.data });
+    console.log(`   Event feedbackIndex: ${parsed2?.args.feedbackIndex}`);
+    if (parsed2?.args.feedbackIndex === BigInt(2)) {
+      console.log(`   ✓ feedbackIndex correctly set to 2 for second feedback`);
+    }
+  }
+  console.log();
 
   // Step 7: Get updated summary
   console.log('📋 Step 7: Getting updated reputation summary...');
@@ -132,7 +168,7 @@ async function main() {
   console.log(`✅ All feedback retrieved:`);
   console.log(`   Total: ${allFeedback.scores.length} feedback entries`);
   for (let i = 0; i < allFeedback.scores.length; i++) {
-    console.log(`   [${i}] Client: ${allFeedback.clientAddresses[i].slice(0, 10)}... Score: ${allFeedback.scores[i]}`);
+    console.log(`   [${i}] Client: ${allFeedback.clientAddresses[i].slice(0, 10)}... Index: ${allFeedback.feedbackIndexes[i]} Score: ${allFeedback.scores[i]}`);
   }
 
   // Step 11: Revoke the first feedback
@@ -181,7 +217,7 @@ async function main() {
   console.log(`   Total: ${allFeedbackWithRevoked.scores.length} feedback entries`);
   for (let i = 0; i < allFeedbackWithRevoked.scores.length; i++) {
     const revokedStatus = allFeedbackWithRevoked.revokedStatuses[i] ? '[REVOKED]' : '';
-    console.log(`   [${i}] Score: ${allFeedbackWithRevoked.scores[i]} ${revokedStatus}`);
+    console.log(`   [${i}] Index: ${allFeedbackWithRevoked.feedbackIndexes[i]} Score: ${allFeedbackWithRevoked.scores[i]} ${revokedStatus}`);
   }
 
   console.log('\n🎉 All tests completed successfully!');

@@ -276,6 +276,7 @@ export class ReputationClient {
     includeRevoked?: boolean
   ): Promise<{
     clientAddresses: string[];
+    feedbackIndexes: bigint[];
     scores: number[];
     tag1s: string[];
     tag2s: string[];
@@ -294,11 +295,12 @@ export class ReputationClient {
     );
 
     return {
-      clientAddresses: result.clientAddresses || result[0],
-      scores: (result.scores || result[1]).map(Number),
-      tag1s: result.tag1s || result[2],
-      tag2s: result.tag2s || result[3],
-      revokedStatuses: (result.revokedStatuses || result[4]).map(Boolean),
+      clientAddresses: result.clients || result[0],
+      feedbackIndexes: (result.feedbackIndexes || result[1]).map(BigInt),
+      scores: (result.scores || result[2]).map(Number),
+      tag1s: result.tag1s || result[3],
+      tag2s: result.tag2s || result[4],
+      revokedStatuses: (result.revokedStatuses || result[5]).map(Boolean),
     };
   }
 
