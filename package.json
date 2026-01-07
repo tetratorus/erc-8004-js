@@ -1,6 +1,6 @@
 {
   "name": "erc-8004-js",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "TypeScript SDK for ERC-8004 Trustless Agents protocol",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
