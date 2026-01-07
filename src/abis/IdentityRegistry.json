@@ -16,6 +16,33 @@
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "ECDSAInvalidSignature",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "length",
+        "type": "uint256"
+      }
+    ],
+    "name": "ECDSAInvalidSignatureLength",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "s",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ECDSAInvalidSignatureS",
+    "type": "error"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -258,6 +285,12 @@
   },
   {
     "anonymous": false,
+    "inputs": [],
+    "name": "EIP712DomainChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
     "inputs": [
       {
         "indexed": false,
@@ -292,9 +325,9 @@
       },
       {
         "indexed": false,
-        "internalType": "string",
+        "internalType": "bytes",
         "name": "metadataValue",
-        "type": "string"
+        "type": "bytes"
       }
     ],
     "name": "MetadataSet",
@@ -344,7 +377,7 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "agentUri",
+        "name": "agentURI",
         "type": "string"
       },
       {
@@ -387,19 +420,6 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "implementation",
-        "type": "address"
-      }
-    ],
-    "name": "Upgraded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
         "internalType": "uint256",
         "name": "agentId",
         "type": "uint256"
@@ -407,7 +427,7 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "newUri",
+        "name": "newURI",
         "type": "string"
       },
       {
@@ -417,7 +437,20 @@
         "type": "address"
       }
     ],
-    "name": "UriUpdated",
+    "name": "URIUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
     "type": "event"
   },
   {
@@ -471,6 +504,68 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "eip712Domain",
+    "outputs": [
+      {
+        "internalType": "bytes1",
+        "name": "fields",
+        "type": "bytes1"
+      },
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "version",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "verifyingContract",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "salt",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "extensions",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "agentId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getAgentWallet",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -505,9 +600,9 @@
     "name": "getMetadata",
     "outputs": [
       {
-        "internalType": "string",
+        "internalType": "bytes",
         "name": "",
-        "type": "string"
+        "type": "bytes"
       }
     ],
     "stateMutability": "view",
@@ -632,7 +727,7 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "agentUri",
+        "name": "agentURI",
         "type": "string"
       },
       {
@@ -643,9 +738,9 @@
             "type": "string"
           },
           {
-            "internalType": "string",
+            "internalType": "bytes",
             "name": "metadataValue",
-            "type": "string"
+            "type": "bytes"
           }
         ],
         "internalType": "struct IdentityRegistryUpgradeable.MetadataEntry[]",
@@ -668,7 +763,7 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "agentUri",
+        "name": "agentURI",
         "type": "string"
       }
     ],
@@ -750,11 +845,39 @@
       },
       {
         "internalType": "string",
-        "name": "newUri",
+        "name": "newURI",
         "type": "string"
       }
     ],
-    "name": "setAgentUri",
+    "name": "setAgentURI",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "agentId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "newWallet",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "setAgentWallet",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -790,9 +913,9 @@
         "type": "string"
       },
       {
-        "internalType": "string",
+        "internalType": "bytes",
         "name": "metadataValue",
-        "type": "string"
+        "type": "bytes"
       }
     ],
     "name": "setMetadata",

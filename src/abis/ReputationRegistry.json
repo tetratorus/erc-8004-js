@@ -158,7 +158,13 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "feedbackUri",
+        "name": "endpoint",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "feedbackURI",
         "type": "string"
       },
       {
@@ -220,7 +226,7 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "responseUri",
+        "name": "responseURI",
         "type": "string"
       },
       {
@@ -278,7 +284,7 @@
       },
       {
         "internalType": "string",
-        "name": "responseUri",
+        "name": "responseURI",
         "type": "string"
       },
       {
@@ -458,7 +464,12 @@
       },
       {
         "internalType": "string",
-        "name": "feedbackUri",
+        "name": "endpoint",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "feedbackURI",
         "type": "string"
       },
       {
@@ -476,7 +487,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_identityRegistry",
+        "name": "identityRegistry_",
         "type": "address"
       }
     ],

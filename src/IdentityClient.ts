@@ -6,6 +6,7 @@
 import { BlockchainAdapter } from './adapters/types';
 import { MetadataEntry, AgentRegistrationFile } from './types';
 import IdentityRegistryABI from './abis/IdentityRegistry.json';
+import { ethers } from 'ethers';
 
 export class IdentityClient {
   private adapter: BlockchainAdapter;
@@ -69,16 +70,16 @@ export class IdentityClient {
     tokenURI: string,
     metadata: MetadataEntry[] = []
   ): Promise<{ agentId: bigint; txHash: string }> {
-    // Convert metadata to contract format (string, string)
+    // Convert metadata to contract format (string, bytes) - value is hex-encoded
     const metadataFormatted = metadata.map(m => ({
       metadataKey: m.key,
-      metadataValue: m.value
+      metadataValue: ethers.hexlify(ethers.toUtf8Bytes(m.value))
     }));
 
     const result = await this.adapter.send(
       this.contractAddress,
       IdentityRegistryABI,
-      'register(string,(string,string)[])',
+      'register(string,(string,bytes)[])',
       [tokenURI, metadataFormatted]
     );
 
@@ -108,15 +109,15 @@ export class IdentityClient {
   /**
    * Set the token URI for an agent
    * Note: This is an implementation-specific extension (not in base spec).
-   * Assumes implementation exposes setAgentUri with owner/operator checks.
+   * Assumes implementation exposes setAgentURI with owner/operator checks.
    * @param agentId - The agent's ID
    * @param uri - New URI string
    */
-  async setAgentUri(agentId: bigint, uri: string): Promise<{ txHash: string }> {
+  async setAgentURI(agentId: bigint, uri: string): Promise<{ txHash: string }> {
     const result = await this.adapter.send(
       this.contractAddress,
       IdentityRegistryABI,
-      'setAgentUri',
+      'setAgentURI',
       [agentId, uri]
     );
 
@@ -138,33 +139,135 @@ export class IdentityClient {
   }
 
   /**
+   * Get the agent wallet address
+   * @param agentId - The agent's ID
+   * @returns The agent wallet address (zero address if not set)
+   */
+  async getAgentWallet(agentId: bigint): Promise<string> {
+    return await this.adapter.call(
+      this.contractAddress,
+      IdentityRegistryABI,
+      'getAgentWallet',
+      [agentId]
+    );
+  }
+
+  /**
+   * Set the agent wallet address (requires EIP-712 signature from new wallet)
+   * @param agentId - The agent's ID
+   * @param newWallet - The new wallet address
+   * @param deadline - Unix timestamp deadline (must be within 5 minutes)
+   * @param signature - EIP-712 signature from the new wallet
+   */
+  async setAgentWallet(
+    agentId: bigint,
+    newWallet: string,
+    deadline: bigint,
+    signature: string
+  ): Promise<{ txHash: string }> {
+    const result = await this.adapter.send(
+      this.contractAddress,
+      IdentityRegistryABI,
+      'setAgentWallet',
+      [agentId, newWallet, deadline, signature]
+    );
+    return { txHash: result.txHash };
+  }
+
+  /**
+   * Create EIP-712 signature for setAgentWallet
+   * The new wallet must sign this to prove ownership
+   * @param agentId - The agent's ID
+   * @param newWallet - The new wallet address
+   * @param ownerAddress - The current owner address
+   * @param deadline - Unix timestamp deadline (must be within 5 minutes of current time)
+   */
+  async signAgentWalletChange(
+    agentId: bigint,
+    newWallet: string,
+    ownerAddress: string,
+    deadline: bigint
+  ): Promise<string> {
+    const chainId = await this.adapter.getChainId();
+
+    const domain = {
+      name: 'ERC8004IdentityRegistry',
+      version: '1',
+      chainId: BigInt(chainId),
+      verifyingContract: this.contractAddress,
+    };
+
+    const types = {
+      AgentWalletSet: [
+        { name: 'agentId', type: 'uint256' },
+        { name: 'newWallet', type: 'address' },
+        { name: 'owner', type: 'address' },
+        { name: 'deadline', type: 'uint256' },
+      ],
+    };
+
+    const value = {
+      agentId,
+      newWallet,
+      owner: ownerAddress,
+      deadline,
+    };
+
+    return await this.adapter.signTypedData(domain, types, value);
+  }
+
+  /**
+   * Transfer an agent to a new owner
+   * Note: This clears the agentWallet on transfer for security
+   * @param from - Current owner address
+   * @param to - New owner address
+   * @param agentId - The agent's ID
+   */
+  async transferFrom(
+    from: string,
+    to: string,
+    agentId: bigint
+  ): Promise<{ txHash: string }> {
+    const result = await this.adapter.send(
+      this.contractAddress,
+      IdentityRegistryABI,
+      'transferFrom',
+      [from, to, agentId]
+    );
+    return { txHash: result.txHash };
+  }
+
+  /**
    * Get on-chain metadata for an agent
-   * Spec: function getMetadata(uint256 agentId, string key) returns (string)
+   * Spec: function getMetadata(uint256 agentId, string key) returns (bytes)
    * @param agentId - The agent's ID
    * @param key - Metadata key
+   * @returns Metadata value as string (decoded from bytes)
    */
   async getMetadata(agentId: bigint, key: string): Promise<string> {
-    return await this.adapter.call(
+    const result = await this.adapter.call(
       this.contractAddress,
       IdentityRegistryABI,
       'getMetadata',
       [agentId, key]
     );
+    // Decode bytes to string
+    return ethers.toUtf8String(result);
   }
 
   /**
    * Set on-chain metadata for an agent
-   * Spec: function setMetadata(uint256 agentId, string key, string value)
+   * Spec: function setMetadata(uint256 agentId, string key, bytes value)
    * @param agentId - The agent's ID
    * @param key - Metadata key
-   * @param value - Metadata value
+   * @param value - Metadata value (will be converted to bytes)
    */
   async setMetadata(agentId: bigint, key: string, value: string): Promise<{ txHash: string }> {
     const result = await this.adapter.send(
       this.contractAddress,
       IdentityRegistryABI,
       'setMetadata',
-      [agentId, key, value]
+      [agentId, key, ethers.hexlify(ethers.toUtf8Bytes(value))]
     );
 
     return { txHash: result.txHash };

@@ -16,9 +16,9 @@ import { ERC8004Client, EthersAdapter } from '../src';
 import { ethers } from 'ethers';
 
 // Contract addresses from your deployment (vanity addresses via CREATE2)
-const IDENTITY_REGISTRY = '0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997';
-const REPUTATION_REGISTRY = '0x8004B312333aCb5764597c2BeEe256596B5C6876';
-const VALIDATION_REGISTRY = '0x8004C8AEF64521bC97AB50799d394CDb785885E3';
+const IDENTITY_REGISTRY = '0x8004A818BFB912233c491871b3d84c89A494BD9e';
+const REPUTATION_REGISTRY = '0x8004B663056A597Dffe9eCcC1965A193B7388713';
+const VALIDATION_REGISTRY = '0x8004Cb1BF31DAf7788923b405b754f57acEB4272';
 
 async function main() {
   console.log('🚀 ERC-8004 SDK Test\n');
@@ -43,6 +43,10 @@ async function main() {
   });
 
   const signerAddress = await client.getAddress();
+  if (!signerAddress) {
+    console.error('No signer address found');
+    return;
+  }
   console.log(`Connected with signer: ${signerAddress}\n`);
 
   // Test 1: Register agent with no URI, then set URI
@@ -55,7 +59,7 @@ async function main() {
 
     // Set the tokenURI after registration
     const newURI = 'ipfs://QmNewAgent456';
-    await client.identity.setAgentUri(result1.agentId, newURI);
+    await client.identity.setAgentURI(result1.agentId, newURI);
     console.log(`✅ Set tokenURI to: ${newURI}`);
 
     // Verify it was set
@@ -85,7 +89,7 @@ async function main() {
     const registrationURI = 'ipfs://QmExample123';
     const metadata = [
       { key: 'agentName', value: 'TestAgent' },
-      { key: 'agentWallet', value: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7' }
+      { key: 'paymentWallet', value: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7' }
     ];
 
     const result3 = await client.identity.registerWithMetadata(
@@ -115,6 +119,120 @@ async function main() {
     await client.identity.setMetadata(result4.agentId, 'status', 'active');
     const status = await client.identity.getMetadata(result4.agentId, 'status');
     console.log(`   Set metadata - status: ${status}\n`);
+  } catch (error: any) {
+    console.error(`❌ Error: ${error.message}\n`);
+  }
+
+  // Test 5: Verify agentWallet auto-set on mint
+  console.log('Test 5: Verify agentWallet auto-set on mint');
+  try {
+    const result5 = await client.identity.register();
+    console.log(`✅ Registered agent ID: ${result5.agentId}`);
+
+    const agentWallet = await client.identity.getAgentWallet(result5.agentId);
+    if (agentWallet.toLowerCase() === signerAddress.toLowerCase()) {
+      console.log(`✅ AgentWallet automatically set to owner: ${agentWallet}\n`);
+    } else {
+      console.log(`❌ AgentWallet NOT auto-set. Expected: ${signerAddress}, Got: ${agentWallet}\n`);
+    }
+  } catch (error: any) {
+    console.error(`❌ Error: ${error.message}\n`);
+  }
+
+  // Test 6: Transfer agent and verify agentWallet clears
+  console.log('Test 6: Transfer agent, verify agentWallet clears');
+  try {
+    const result6 = await client.identity.register();
+    console.log(`✅ Registered agent ID: ${result6.agentId}`);
+
+    const walletBefore = await client.identity.getAgentWallet(result6.agentId);
+    console.log(`   AgentWallet before transfer: ${walletBefore}`);
+
+    // Get second signer for transfer
+    const signer2 = await provider.getSigner(1);
+    const signer2Address = await signer2.getAddress();
+
+    // Transfer to second account
+    await client.identity.transferFrom(signerAddress, signer2Address, result6.agentId);
+    console.log(`   Transferred to: ${signer2Address}`);
+
+    // Verify agentWallet is cleared
+    const walletAfter = await client.identity.getAgentWallet(result6.agentId);
+    if (walletAfter === '0x0000000000000000000000000000000000000000') {
+      console.log(`✅ AgentWallet correctly cleared on transfer: ${walletAfter}\n`);
+    } else {
+      console.log(`❌ AgentWallet NOT cleared. Got: ${walletAfter}\n`);
+    }
+  } catch (error: any) {
+    console.error(`❌ Error: ${error.message}\n`);
+  }
+
+  // Test 7: Set agentWallet with EIP-712 signature
+  console.log('Test 7: Set agentWallet with EIP-712 signature');
+  try {
+    const result7 = await client.identity.register();
+    console.log(`✅ Registered agent ID: ${result7.agentId}`);
+
+    // Get second signer
+    const signer2 = await provider.getSigner(1);
+    const signer2Address = await signer2.getAddress();
+
+    // Transfer to signer2 (clears agentWallet)
+    await client.identity.transferFrom(signerAddress, signer2Address, result7.agentId);
+    console.log(`   Transferred to: ${signer2Address}`);
+
+    // Create client for signer2
+    const adapter2 = new EthersAdapter(provider, signer2);
+    const client2 = new ERC8004Client({
+      adapter: adapter2,
+      addresses: {
+        identityRegistry: IDENTITY_REGISTRY,
+        reputationRegistry: REPUTATION_REGISTRY,
+        validationRegistry: VALIDATION_REGISTRY,
+        chainId: 31337,
+      },
+    });
+
+    // Get block timestamp for deadline
+    const block = await provider.getBlock('latest');
+    const deadline = BigInt(block!.timestamp + 240);
+
+    // EIP-712 signing
+    const chainId = 31337;
+    const domain = {
+      name: 'ERC8004IdentityRegistry',
+      version: '1',
+      chainId,
+      verifyingContract: IDENTITY_REGISTRY,
+    };
+    const types = {
+      AgentWalletSet: [
+        { name: 'agentId', type: 'uint256' },
+        { name: 'newWallet', type: 'address' },
+        { name: 'owner', type: 'address' },
+        { name: 'deadline', type: 'uint256' },
+      ],
+    };
+    const message = {
+      agentId: result7.agentId,
+      newWallet: signer2Address,
+      owner: signer2Address,
+      deadline,
+    };
+
+    // newWallet (signer2) signs to prove they control the wallet
+    const signature = await signer2.signTypedData(domain, types, message);
+
+    // Set agentWallet
+    await client2.identity.setAgentWallet(result7.agentId, signer2Address, deadline, signature);
+
+    // Verify
+    const walletAfterSet = await client2.identity.getAgentWallet(result7.agentId);
+    if (walletAfterSet.toLowerCase() === signer2Address.toLowerCase()) {
+      console.log(`✅ AgentWallet set via EIP-712: ${walletAfterSet}\n`);
+    } else {
+      console.log(`❌ AgentWallet NOT set. Expected: ${signer2Address}, Got: ${walletAfterSet}\n`);
+    }
   } catch (error: any) {
     console.error(`❌ Error: ${error.message}\n`);
   }

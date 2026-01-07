@@ -17,9 +17,9 @@ import { hardhat } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
 // Contract addresses from your deployment (vanity addresses via CREATE2)
-const IDENTITY_REGISTRY = '0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997';
-const REPUTATION_REGISTRY = '0x8004B312333aCb5764597c2BeEe256596B5C6876';
-const VALIDATION_REGISTRY = '0x8004C8AEF64521bC97AB50799d394CDb785885E3';
+const IDENTITY_REGISTRY = '0x8004A818BFB912233c491871b3d84c89A494BD9e';
+const REPUTATION_REGISTRY = '0x8004B663056A597Dffe9eCcC1965A193B7388713';
+const VALIDATION_REGISTRY = '0x8004Cb1BF31DAf7788923b405b754f57acEB4272';
 
 // Hardhat default test accounts
 const AGENT_OWNER_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
@@ -93,7 +93,7 @@ async function main() {
     score: 95,
     tag1: 'excellent-service',
     tag2: 'viem-test',
-    feedbackUri: 'ipfs://QmViemFeedback123',
+    feedbackURI: 'ipfs://QmViemFeedback123',
   });
   console.log(`✅ Feedback submitted`);
   console.log(`   Score: 95 / 100`);
@@ -108,13 +108,13 @@ async function main() {
 
   // Step 4: Request validation
   console.log('📋 Step 4: Requesting validation...');
-  const requestUri = 'ipfs://QmViemValidation123';
+  const requestURI = 'ipfs://QmViemValidation123';
   const requestHash = '0x' + Buffer.from('viem-test-' + Date.now()).toString('hex').padEnd(64, '0');
 
   const validationRequest = await agentSDK.validation.validationRequest({
     validatorAddress: validatorAccount.address,
     agentId,
-    requestUri,
+    requestURI,
     requestHash: requestHash as `0x${string}`,
   });
   console.log(`✅ Validation requested`);
@@ -127,7 +127,7 @@ async function main() {
   const responseResult = await validatorSDK.validation.validationResponse({
     requestHash: requestHash as `0x${string}`,
     response: 100,
-    responseUri: 'ipfs://QmViemResponse123',
+    responseURI: 'ipfs://QmViemResponse123',
     tag: 'viem-adapter-test',
   });
   console.log(`✅ Validation response provided`);

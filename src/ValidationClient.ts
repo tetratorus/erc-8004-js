@@ -11,14 +11,14 @@ import { ethers } from 'ethers';
 export interface ValidationRequestParams {
   validatorAddress: string; // MANDATORY
   agentId: bigint; // MANDATORY
-  requestUri: string; // MANDATORY
-  requestHash: string; // MANDATORY (bytes32 hash of content at requestUri)
+  requestURI: string; // MANDATORY
+  requestHash: string; // MANDATORY (bytes32 hash of content at requestURI)
 }
 
 export interface ValidationResponseParams {
   requestHash: string; // MANDATORY (bytes32)
   response: number; // MANDATORY (0-100)
-  responseUri?: string; // OPTIONAL
+  responseURI?: string; // OPTIONAL
   responseHash?: string; // OPTIONAL (bytes32)
   tag?: string; // OPTIONAL (bytes32)
 }
@@ -34,9 +34,9 @@ export class ValidationClient {
 
   /**
    * Request validation from a validator
-   * Spec: function validationRequest(address validatorAddress, uint256 agentId, string requestUri, bytes32 requestHash)
+   * Spec: function validationRequest(address validatorAddress, uint256 agentId, string requestURI, bytes32 requestHash)
    * Note: MUST be called by owner or operator of agentId
-   * Note: requestHash MUST be keccak256 of the content at requestUri
+   * Note: requestHash MUST be keccak256 of the content at requestURI
    *
    * @param params - Validation request parameters
    * @returns Transaction result with requestHash
@@ -46,7 +46,7 @@ export class ValidationClient {
       this.contractAddress,
       ValidationRegistryABI,
       'validationRequest',
-      [params.validatorAddress, params.agentId, params.requestUri, params.requestHash]
+      [params.validatorAddress, params.agentId, params.requestURI, params.requestHash]
     );
 
     return {
@@ -57,7 +57,7 @@ export class ValidationClient {
 
   /**
    * Provide a validation response
-   * Spec: function validationResponse(bytes32 requestHash, uint8 response, string responseUri, bytes32 responseHash, bytes32 tag)
+   * Spec: function validationResponse(bytes32 requestHash, uint8 response, string responseURI, bytes32 responseHash, string tag)
    * Note: MUST be called by the validatorAddress specified in the original request
    * Note: Can be called multiple times for the same requestHash
    *
@@ -71,15 +71,15 @@ export class ValidationClient {
     }
 
     // Convert optional parameters to proper format
-    const responseUri = params.responseUri || '';
+    const responseURI = params.responseURI || '';
     const responseHash = params.responseHash || ethers.ZeroHash;
-    const tag = params.tag ? ethers.id(params.tag).slice(0, 66) : ethers.ZeroHash;
+    const tag = params.tag || '';
 
     const result = await this.adapter.send(
       this.contractAddress,
       ValidationRegistryABI,
       'validationResponse',
-      [params.requestHash, params.response, responseUri, responseHash, tag]
+      [params.requestHash, params.response, responseURI, responseHash, tag]
     );
 
     return { txHash: result.txHash };

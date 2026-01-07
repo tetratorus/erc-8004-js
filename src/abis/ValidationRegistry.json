@@ -147,7 +147,7 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "requestUri",
+        "name": "requestURI",
         "type": "string"
       },
       {
@@ -190,7 +190,7 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "responseUri",
+        "name": "responseURI",
         "type": "string"
       },
       {
@@ -368,7 +368,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_identityRegistry",
+        "name": "identityRegistry_",
         "type": "address"
       }
     ],
@@ -455,7 +455,7 @@
       },
       {
         "internalType": "string",
-        "name": "requestUri",
+        "name": "requestURI",
         "type": "string"
       },
       {
@@ -483,7 +483,7 @@
       },
       {
         "internalType": "string",
-        "name": "responseUri",
+        "name": "responseURI",
         "type": "string"
       },
       {
@@ -500,55 +500,6 @@
     "name": "validationResponse",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "name": "validations",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "validatorAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "agentId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "response",
-        "type": "uint8"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "responseHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "string",
-        "name": "tag",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lastUpdate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "hasResponse",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   }
 ]

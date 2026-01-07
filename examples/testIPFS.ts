@@ -12,9 +12,9 @@ import { createIPFSClient, ERC8004Client, EthersAdapter, IPFSClientConfig } from
 import { ethers } from 'ethers';
 
 // Contract addresses (vanity addresses via CREATE2 - deterministic across chains)
-const IDENTITY_REGISTRY = '0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997';
-const REPUTATION_REGISTRY = '0x8004B312333aCb5764597c2BeEe256596B5C6876';
-const VALIDATION_REGISTRY = '0x8004C8AEF64521bC97AB50799d394CDb785885E3';
+const IDENTITY_REGISTRY = '0x8004A818BFB912233c491871b3d84c89A494BD9e';
+const REPUTATION_REGISTRY = '0x8004B663056A597Dffe9eCcC1965A193B7388713';
+const VALIDATION_REGISTRY = '0x8004Cb1BF31DAf7788923b405b754f57acEB4272';
 
 // Example agent registration data
 const agentData = {
@@ -36,7 +36,7 @@ const agentData = {
   registrations: [
     {
       agentId: 1,
-      agentRegistry: 'eip155:31337:0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997',
+      agentRegistry: 'eip155:31337:0x8004A818BFB912233c491871b3d84c89A494BD9e',
     },
   ],
   supportedTrust: ['reputation', 'crypto-economic'],
@@ -165,12 +165,12 @@ async function main() {
     console.log('🔍 Fetching agent from registry...');
 
     // Get the agent's token URI from the registry
-    const agentUri = await client.identity.getTokenURI(registration.agentId);
-    console.log('✅ Retrieved agent URI:', agentUri);
+    const agentURI = await client.identity.getTokenURI(registration.agentId);
+    console.log('✅ Retrieved agent URI:', agentURI);
 
     // Fetch and parse the IPFS data
     console.log('📥 Fetching agent data from IPFS...');
-    const agentDataFromIPFS = await ipfs.fetchJSON(agentUri);
+    const agentDataFromIPFS = await ipfs.fetchJSON(agentURI);
 
     console.log('✅ Agent data retrieved and parsed:');
     console.log('   Name:', agentDataFromIPFS.name);
@@ -282,12 +282,12 @@ async function completeAgentLifecycle() {
 
   // 5. Fetch from registry (simulating another user discovering the agent)
   console.log('🔍 Step 3: Fetching agent data from registry...');
-  const registeredUri = await client.identity.getTokenURI(registration.agentId);
-  console.log(`   ✅ Retrieved URI: ${registeredUri}`);
+  const registeredURI = await client.identity.getTokenURI(registration.agentId);
+  console.log(`   ✅ Retrieved URI: ${registeredURI}`);
 
   // 6. Fetch and parse IPFS data
   console.log('📥 Step 4: Fetching agent metadata from IPFS...');
-  const retrievedMetadata = await ipfs.fetchJSON(registeredUri);
+  const retrievedMetadata = await ipfs.fetchJSON(registeredURI);
   console.log(`   ✅ Retrieved agent: ${retrievedMetadata.name}`);
 
   // 7. Verify integrity

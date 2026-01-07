@@ -16,9 +16,9 @@ import { ERC8004Client, EthersAdapter, ipfsUriToBytes32 } from '../src';
 import { ethers } from 'ethers';
 
 // Contract addresses from your deployment (vanity addresses via CREATE2)
-const IDENTITY_REGISTRY = '0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997';
-const REPUTATION_REGISTRY = '0x8004B312333aCb5764597c2BeEe256596B5C6876';
-const VALIDATION_REGISTRY = '0x8004C8AEF64521bC97AB50799d394CDb785885E3';
+const IDENTITY_REGISTRY = '0x8004A818BFB912233c491871b3d84c89A494BD9e';
+const REPUTATION_REGISTRY = '0x8004B663056A597Dffe9eCcC1965A193B7388713';
+const VALIDATION_REGISTRY = '0x8004Cb1BF31DAf7788923b405b754f57acEB4272';
 
 /**
  * Generate a random CIDv0 (Qm...) for testing purposes
@@ -111,28 +111,28 @@ async function main() {
   console.log('📋 Step 2: Agent requesting validation...');
   // Generate a random IPFS CID for this validation request
   const cid1 = generateRandomCIDv0();
-  const requestUri = `ipfs://${cid1}`;
+  const requestURI = `ipfs://${cid1}`;
   // Convert IPFS CID to bytes32 for use as requestHash
-  const requestHash = ipfsUriToBytes32(requestUri);
+  const requestHash = ipfsUriToBytes32(requestURI);
   const requestResult = await agentSDK.validation.validationRequest({
     validatorAddress,
     agentId,
-    requestUri,
+    requestURI,
     requestHash,
   });
   console.log(`✅ Validation requested`);
   console.log(`   Validator: ${validatorAddress}`);
-  console.log(`   Request URI: ${requestUri}`);
+  console.log(`   Request URI: ${requestURI}`);
   console.log(`   Request Hash: ${requestResult.requestHash}`);
   console.log(`   TX Hash: ${requestResult.txHash}\n`);
 
   // Step 3: Validator provides response (passed)
   console.log('📋 Step 3: Validator providing response (passed)...');
-  const responseUri1 = `ipfs://${generateRandomCIDv0()}`;
+  const responseURI1 = `ipfs://${generateRandomCIDv0()}`;
   const responseResult = await validatorSDK.validation.validationResponse({
     requestHash,
     response: 100, // 100 = passed, 0 = failed
-    responseUri: responseUri1,
+    responseURI: responseURI1,
     tag: 'zkML-proof',
   });
   console.log(`✅ Validation response provided`);
@@ -181,12 +181,12 @@ async function main() {
   console.log('📋 Step 8: Submitting second validation request...');
   // Generate another random IPFS CID
   const cid2 = generateRandomCIDv0();
-  const requestUri2 = `ipfs://${cid2}`;
-  const requestHash2 = ipfsUriToBytes32(requestUri2);
+  const requestURI2 = `ipfs://${cid2}`;
+  const requestHash2 = ipfsUriToBytes32(requestURI2);
   const request2 = await agentSDK.validation.validationRequest({
     validatorAddress,
     agentId,
-    requestUri: requestUri2,
+    requestURI: requestURI2,
     requestHash: requestHash2,
   });
   console.log(`✅ Second validation requested`);
@@ -210,12 +210,12 @@ async function main() {
 
   // Step 11: Validator updates first validation (progressive validation)
   console.log('📋 Step 11: Validator updating first validation (hard finality)...');
-  const responseUri2 = `ipfs://${generateRandomCIDv0()}`;
+  const responseURI2 = `ipfs://${generateRandomCIDv0()}`;
   await validatorSDK.validation.validationResponse({
     requestHash,
     response: 100,
     tag: 'hard-finality',
-    responseUri: responseUri2,
+    responseURI: responseURI2,
   });
   console.log(`✅ Validation updated with hard finality tag\n`);
 

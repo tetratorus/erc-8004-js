@@ -17,9 +17,9 @@ import { ERC8004Client, EthersAdapter } from '../src';
 import { ethers } from 'ethers';
 
 // Contract addresses from your deployment (vanity addresses via CREATE2 - deterministic across chains)
-const IDENTITY_REGISTRY = '0x8004AbdDA9b877187bF865eD1d8B5A41Da3c4997';
-const REPUTATION_REGISTRY = '0x8004B312333aCb5764597c2BeEe256596B5C6876';
-const VALIDATION_REGISTRY = '0x8004C8AEF64521bC97AB50799d394CDb785885E3';
+const IDENTITY_REGISTRY = '0x8004A818BFB912233c491871b3d84c89A494BD9e';
+const REPUTATION_REGISTRY = '0x8004B663056A597Dffe9eCcC1965A193B7388713';
+const VALIDATION_REGISTRY = '0x8004Cb1BF31DAf7788923b405b754f57acEB4272';
 
 /**
  * Generate a random CIDv0 (Qm...) for testing purposes
@@ -106,7 +106,7 @@ async function main() {
     const registrationURI = `ipfs://${generateRandomCIDv0()}`;
     const metadata = [
       { key: 'agentName', value: 'TestAgent' },
-      { key: 'agentWallet', value: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7' }
+      { key: 'paymentWallet', value: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7' }
     ];
 
     const result = await agentClient.identity.registerWithMetadata(
@@ -122,9 +122,17 @@ async function main() {
 
     // Read back metadata
     const agentName = await agentClient.identity.getMetadata(agentId, 'agentName');
-    const agentWallet = await agentClient.identity.getMetadata(agentId, 'agentWallet');
+    const paymentWallet = await agentClient.identity.getMetadata(agentId, 'paymentWallet');
     console.log(`   Metadata - agentName: ${agentName}`);
-    console.log(`   Metadata - agentWallet: ${agentWallet}\n`);
+    console.log(`   Metadata - paymentWallet: ${paymentWallet}`);
+
+    // Verify agentWallet is automatically set to owner on mint
+    const agentWallet = await agentClient.identity.getAgentWallet(agentId);
+    if (agentWallet.toLowerCase() === agentOwnerAddress.toLowerCase()) {
+      console.log(`✅ AgentWallet automatically set to owner on mint: ${agentWallet}\n`);
+    } else {
+      console.log(`❌ AgentWallet NOT set on mint. Expected: ${agentOwnerAddress}, Got: ${agentWallet}\n`);
+    }
   } catch (error: any) {
     console.error(`❌ Error: ${error.message}\n`);
     return;
@@ -138,6 +146,103 @@ async function main() {
     console.log(`   Set metadata - status: ${status}`);
     console.log(`   TX Hash: ${setMetadataResult.txHash}`);
     console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${setMetadataResult.txHash}\n`);
+  } catch (error: any) {
+    console.error(`❌ Error: ${error.message}\n`);
+  }
+
+  // Test 1.5: Verify agentWallet clears on transfer
+  console.log('Test 1.5: Transfer agent, verify agentWallet clears');
+  try {
+    // AgentWallet was already set to owner on mint (verified above)
+    const walletBefore = await agentClient.identity.getAgentWallet(agentId);
+    console.log(`   AgentWallet before transfer: ${walletBefore}`);
+
+    // Transfer agent to feedbackGiver
+    const transferResult = await agentClient.identity.transferFrom(
+      agentOwnerAddress,
+      feedbackGiverAddress,
+      agentId
+    );
+    console.log(`✅ Agent transferred to: ${feedbackGiverAddress}`);
+    console.log(`   TX Hash: ${transferResult.txHash}`);
+    console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${transferResult.txHash}`);
+
+    // Verify agentWallet is cleared (should be zero address)
+    const walletAfter = await feedbackClient.identity.getAgentWallet(agentId);
+    console.log(`   AgentWallet after transfer: ${walletAfter}`);
+    if (walletAfter === '0x0000000000000000000000000000000000000000') {
+      console.log(`✅ AgentWallet correctly cleared on transfer!\n`);
+    } else {
+      console.log(`❌ AgentWallet was NOT cleared on transfer!\n`);
+    }
+
+    // Transfer back to original owner for remaining tests
+    const transferBackResult = await feedbackClient.identity.transferFrom(
+      feedbackGiverAddress,
+      agentOwnerAddress,
+      agentId
+    );
+    console.log(`   Transferred agent back to original owner for remaining tests`);
+    console.log(`   TX Hash: ${transferBackResult.txHash}`);
+
+    // Verify agentWallet is cleared after transfer back too
+    const walletAfterTransferBack = await agentClient.identity.getAgentWallet(agentId);
+    console.log(`   AgentWallet after transfer back: ${walletAfterTransferBack}\n`);
+  } catch (error: any) {
+    console.error(`❌ Error: ${error.message}\n`);
+  }
+
+  // Test 1.6: Set agentWallet with EIP-712 signature
+  console.log('Test 1.6: Set agentWallet with EIP-712 signature');
+  try {
+    // Get current block timestamp for deadline (within 5 minutes)
+    const block = await provider.getBlock('latest');
+    const deadline = BigInt(block!.timestamp + 240); // 4 minutes from now
+
+    // EIP-712 domain and types for signing
+    const chainId = Number((await provider.getNetwork()).chainId);
+    const domain = {
+      name: 'ERC8004IdentityRegistry',
+      version: '1',
+      chainId,
+      verifyingContract: IDENTITY_REGISTRY,
+    };
+    const types = {
+      AgentWalletSet: [
+        { name: 'agentId', type: 'uint256' },
+        { name: 'newWallet', type: 'address' },
+        { name: 'owner', type: 'address' },
+        { name: 'deadline', type: 'uint256' },
+      ],
+    };
+    const message = {
+      agentId,
+      newWallet: agentOwnerAddress,
+      owner: agentOwnerAddress,
+      deadline,
+    };
+
+    // newWallet signs to prove they control the wallet
+    const signature = await agentOwner.signTypedData(domain, types, message);
+
+    // Owner sets their own address as the agentWallet
+    const setWalletResult = await agentClient.identity.setAgentWallet(
+      agentId,
+      agentOwnerAddress,
+      deadline,
+      signature
+    );
+    console.log(`✅ AgentWallet set via EIP-712 signature`);
+    console.log(`   TX Hash: ${setWalletResult.txHash}`);
+    console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${setWalletResult.txHash}`);
+
+    // Verify agentWallet is set
+    const walletAfterSet = await agentClient.identity.getAgentWallet(agentId);
+    if (walletAfterSet.toLowerCase() === agentOwnerAddress.toLowerCase()) {
+      console.log(`✅ AgentWallet correctly set to: ${walletAfterSet}\n`);
+    } else {
+      console.log(`❌ AgentWallet NOT set correctly. Expected: ${agentOwnerAddress}, Got: ${walletAfterSet}\n`);
+    }
   } catch (error: any) {
     console.error(`❌ Error: ${error.message}\n`);
   }
@@ -184,22 +289,22 @@ async function main() {
   try {
     // Generate a random IPFS CID for the validation request
     const validationCid = generateRandomCIDv0();
-    const requestUri = `ipfs://${validationCid}`;
+    const requestURI = `ipfs://${validationCid}`;
 
     // Import ipfsUriToBytes32 dynamically
     const { ipfsUriToBytes32 } = await import('../src');
-    const requestHash = ipfsUriToBytes32(requestUri);
+    const requestHash = ipfsUriToBytes32(requestURI);
 
     // Request validation from feedback giver (acting as validator)
     const requestResult = await agentClient.validation.validationRequest({
       validatorAddress: feedbackGiverAddress,
       agentId: agentId,
-      requestUri,
+      requestURI,
       requestHash,
     });
     console.log(`✅ Validation requested`);
     console.log(`   Validator: ${feedbackGiverAddress}`);
-    console.log(`   Request URI: ${requestUri}`);
+    console.log(`   Request URI: ${requestURI}`);
     console.log(`   Request Hash: ${requestResult.requestHash}`);
     console.log(`   TX Hash: ${requestResult.txHash}`);
     console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${requestResult.txHash}`);
@@ -218,17 +323,17 @@ async function main() {
     }
 
     // Validator (feedback giver) provides response
-    const responseUri = `ipfs://${generateRandomCIDv0()}`;
+    const responseURI = `ipfs://${generateRandomCIDv0()}`;
     const responseResult = await feedbackClient.validation.validationResponse({
       requestHash,
       response: 100, // 100 = passed
-      responseUri,
+      responseURI,
       tag: 'zkML-proof',
     });
     console.log(`✅ Validation response provided`);
     console.log(`   Response: 100 (passed)`);
     console.log(`   Tag: zkML-proof`);
-    console.log(`   Response URI: ${responseUri}`);
+    console.log(`   Response URI: ${responseURI}`);
     console.log(`   TX Hash: ${responseResult.txHash}`);
     console.log(`   🔍 View on Etherscan: https://sepolia.etherscan.io/tx/${responseResult.txHash}`);
 
